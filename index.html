@@ -289,14 +289,14 @@
         <section id="loginView" class="card login-box">
             <h2>تسجيل الدخول</h2>
             <p>أدخل بيانات البوابة للوصول إلى المحاضرة أو لوحة الإدارة</p>
-            <form onsubmit="handleLogin(event)">
+            <form id="loginForm" onsubmit="handleLogin(event)">
                 <div class="form-group">
                     <label>اسم المستخدم</label>
-                    <input type="text" id="username" placeholder="اكتب: محاضرة" required>
+                    <input type="text" id="username" placeholder="اكتب: admin أو محاضرة" required>
                 </div>
                 <div class="form-group">
-                    <label>الرمز (رقم المحاضرة)</label>
-                    <input type="password" id="password" placeholder="مثال: 1 أو 2 ..." required>
+                    <label>الرمز (كلمة المرور أو رقم المحاضرة)</label>
+                    <input type="password" id="password" placeholder="كلمة السر أو رقم المحاضرة..." required>
                 </div>
                 <button type="submit" class="btn-primary" id="loginBtn">دخول البوابة ←</button>
             </form>
@@ -370,14 +370,14 @@
 
     <script>
         // ==========================================
-        // ⚙️ إعدادات GitHub الخاصة بك (عدّل هذه الـ 5 أسطر فقط)
+        // ⚙️ إعدادات GitHub الخاصة بك (تم ضبطها مسبقاً)
         // ==========================================
-        const GITHUB_OWNER = 'Sadamiq';           // اسم حسابك في GitHub
-        const GITHUB_REPO  = 'Polytechnic';       // اسم المستودع في GitHub
-        const GITHUB_TOKEN = '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'; // رمز الدخول (Token)
+        const GITHUB_OWNER = 'Sadamiq';           
+        const GITHUB_REPO  = 'Polytechnic';       
+        const GITHUB_TOKEN = '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'; // تأكد أن رمزك الصحيح هنا
         
-        const ADMIN_USER   = '7moda';             // اسم مستخدم المدير
-        const ADMIN_PASS   = '@iraqbmw2006';              // كلمة سر المدير
+        const ADMIN_USER   = '7moda';             
+        const ADMIN_PASS   = '@iraqbmw2006';              
         // ==========================================
 
         const DB_FILE = 'lectures.json';
@@ -411,8 +411,44 @@
         function updateFileCount() {
             const files = document.getElementById('newLecFiles').files;
             document.getElementById('fileCountText').textContent = 
-                files.length > 0 ? `✅ تم اختيار ${files.length} ملفات جاهزة للرفع` : '📂 اضغط هنا لاختيار الملفات'; }  // دوال ترميز النصوص العربية لـ GitHub Base64 function utf8ToB64(str) { return window.btoa(unescape(encodeURIComponent(str))); }  function b64ToUtf8(str) { return decodeURIComponent(escape(window.atob(str))); }  // قراءة ملف المحاضرات من GitHub async function fetchLecturesDB() { try { const res = await fetch(`${API_BASE}/${DB_FILE}?t=${Date.now()}`, {
-                    headers: { 'Authorization': `token ${GITHUB_TOKEN}` } }); if (res.status === 404) return { data: [], sha: null }; if (!res.ok) throw new Error('خطأ في الاتصال بـ GitHub'); const json = await res.json(); const content = JSON.parse(b64ToUtf8(json.content.replace(/\n/g, ''))); return { data: content, sha: json.sha }; } catch (err) { console.error(err); return null; } }  // حفظ التعديلات على ملف المحاضرات في GitHub async function saveLecturesDB(lecturesArray, sha) { const body = { message: 'تحديث بيانات المحاضرات', content: utf8ToB64(JSON.stringify(lecturesArray, null, 2)) }; if (sha) body.sha = sha;  const res = await fetch(`${API_BASE}/${DB_FILE}`, { method: 'PUT', headers: { 'Authorization': `token ${GITHUB_TOKEN}`,
+                files.length > 0 ? `✅ تم اختيار ${files.length} ملفات جاهزة للرفع` : '📂 اضغط هنا لاختيار الملفات';
+        }
+
+        function utf8ToB64(str) {
+            return window.btoa(unescape(encodeURIComponent(str)));
+        }
+
+        function b64ToUtf8(str) {
+            return decodeURIComponent(escape(window.atob(str)));
+        }
+
+        async function fetchLecturesDB() {
+            try {
+                const res = await fetch(`${API_BASE}/${DB_FILE}?t=${Date.now()}`, {
+                    headers: { 'Authorization': `token ${GITHUB_TOKEN}` }
+                });
+                if (res.status === 404) return { data: [], sha: null };
+                if (!res.ok) throw new Error('خطأ في الاتصال بـ GitHub');
+                const json = await res.json();
+                const content = JSON.parse(b64ToUtf8(json.content.replace(/\n/g, '')));
+                return { data: content, sha: json.sha };
+            } catch (err) {
+                console.error(err);
+                return null;
+            }
+        }
+
+        async function saveLecturesDB(lecturesArray, sha) {
+            const body = {
+                message: 'تحديث بيانات المحاضرات',
+                content: utf8ToB64(JSON.stringify(lecturesArray, null, 2))
+            };
+            if (sha) body.sha = sha;
+
+            const res = await fetch(`${API_BASE}/${DB_FILE}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `token ${GITHUB_TOKEN}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(body)
@@ -420,7 +456,6 @@
             if (!res.ok) throw new Error('فشل حفظ البيانات');
         }
 
-        // تحويل الملف المرفوع إلى Base64
         function fileToBase64(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -430,7 +465,6 @@
             });
         }
 
-        // رفع الملفات مباشرة إلى مجلد داخل GitHub
         async function uploadFilesToGitHub(fileList, lecNum) {
             const uploaded = [];
             for (let file of fileList) {
@@ -441,7 +475,11 @@
                 const res = await fetch(`${API_BASE}/${filePath}`, {
                     method: 'PUT',
                     headers: {
-                        'Authorization': `token ${GITHUB_TOKEN}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ message: `رفع ملف ${file.name}`,
+                        'Authorization': `token ${GITHUB_TOKEN}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: `رفع ملف ${file.name}`,
                         content: base64Content
                     })
                 });
@@ -458,9 +496,10 @@
             return uploaded;
         }
 
-        // تسجيل الدخول
+        // تسجيل الدخول (مع منع إعادة تحميل الصفحة)
         async function handleLogin(e) {
-            e.preventDefault();
+            e.preventDefault(); // منع إعادة تحميل الصفحة
+            
             const user = document.getElementById('username').value.trim();
             const pass = document.getElementById('password').value.trim();
             const btn = document.getElementById('loginBtn');
@@ -474,8 +513,8 @@
                 return;
             }
 
-            if (user === 'محاضرة') {
-                const lecNum = parseInt(pass);
+            if (user === 'محاضرة' || !isNaN(parseInt(user))) {
+                const lecNum = parseInt(pass || user);
                 if (isNaN(lecNum)) {
                     showToast('⚠️ الرمز يجب أن يكون رقم المحاضرة (مثال: 1)');
                     return;
@@ -495,4 +534,191 @@
 
                 const lecture = db.data.find(l => l.lecture_number === lecNum);
                 if (!lecture) {
-                    showToast(`❌ لا توجد ب
+                    showToast(`❌ لا توجد بوابة منشورة للمحاضرة رقم (${lecNum}) حالياً`);
+                    return;
+                }
+
+                renderLectureGate(lecture);
+            } else {
+                showToast('❌ اسم المستخدم غير صحيح! اكتب admin أو محاضرة');
+            }
+        }
+
+        function renderLectureGate(lec) {
+            document.getElementById('loginView').classList.add('hidden');
+            document.getElementById('lectureView').classList.remove('hidden');
+            document.getElementById('logoutBtn').classList.remove('hidden');
+
+            document.getElementById('lecBadge').textContent = `محاضرة #${lec.lecture_number}`;
+            document.getElementById('lecTitle').textContent = lec.title;
+            document.getElementById('lecMeta').textContent = `📅 يوم ${lec.day_name}  |  التاريخ: ${lec.lecture_date}`;
+
+            const grid = document.getElementById('lecFilesGrid');
+            grid.innerHTML = '';
+
+            if (!lec.files || lec.files.length === 0) {
+                grid.innerHTML = '<p style="color: var(--text-secondary);">لا توجد ملفات مرفوعة في هذه البوابة بعد.</p>';
+                return;
+            }
+
+            lec.files.forEach(file => {
+                grid.innerHTML += `
+                    <div class="file-item">
+                        <div class="file-name">📄 ${file.name}</div>
+                        <div class="file-actions">
+                            <a href="${file.url}" target="_blank" class="btn-sm btn-download">فتح / تحميل 📥</a>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        async function createLecture(e) {
+            e.preventDefault();
+            const btn = document.getElementById('saveLecBtn');
+            const lecNum = parseInt(document.getElementById('newLecNum').value);
+            const title = document.getElementById('newLecTitle').value.trim();
+            const dayName = document.getElementById('newLecDay').value;
+            const lecDate = document.getElementById('newLecDate').value;
+            const filesInput = document.getElementById('newLecFiles').files;
+
+            btn.disabled = true;
+            btn.textContent = 'جاري رفع الملفات وحفظ البوابة على GitHub... ⏳';
+
+            try {
+                const db = await fetchLecturesDB();
+                if (!db) throw new Error('تأكد من رمز GitHub Token');
+
+                if (db.data.some(l => l.lecture_number === lecNum)) {
+                    showToast(`⚠️ المحاضرة رقم ${lecNum} موجودة مسبقاً!`);
+                    btn.disabled = false;
+                    btn.textContent = 'حفظ ونشر البوابة 🚀';
+                    return;
+                }
+
+                const uploadedFiles = await uploadFilesToGitHub(filesInput, lecNum);
+
+                const newLec = {
+                    id: Date.now(),
+                    lecture_number: lecNum,
+                    title: title,
+                    day_name: dayName,
+                    lecture_date: lecDate,
+                    files: uploadedFiles
+                };
+
+                db.data.unshift(newLec);
+                await saveLecturesDB(db.data, db.sha);
+
+                showToast('✅ تم إنشاء البوابة ورفع الملفات بنجاح!');
+                e.target.reset();
+                document.getElementById('newLecDate').valueAsDate = new Date();
+                updateFileCount();
+                loadAdminLectures();
+            } catch (err) {
+                showToast('❌ حدث خطأ! تأكد من وضع رمز GITHUB_TOKEN الصحيح');
+                console.error(err);
+            }
+
+            btn.disabled = false;
+            btn.textContent = 'حفظ ونشر البوابة 🚀';
+        }
+
+        async function loadAdminLectures() {
+            const list = document.getElementById('adminLecturesList');
+            list.innerHTML = 'جاري جلب البوابات من GitHub...';
+
+            const db = await fetchLecturesDB();
+            if (!db) {
+                list.innerHTML = '<p style="color:var(--danger);">❌ تعذر الاتصال! تأكد من تعديل سطر GITHUB_TOKEN في الكود.</p>';
+                return;
+            }
+
+            if (db.data.length === 0) {
+                list.innerHTML = '<p style="color: var(--text-secondary);">لم تقم بإضافة أي محاضرة بعد.</p>';
+                return;
+            }
+
+            const sorted = [...db.data].sort((a, b) => b.lecture_number - a.lecture_number);
+            list.innerHTML = '';
+
+            sorted.forEach(lec => {
+                const filesHtml = (lec.files || []).map((f, idx) => `
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 10px; background:var(--bg-primary); border-radius:8px; margin-top:6px; font-size:0.85rem;">
+                        <a href="${f.url}" target="_blank" style="color:var(--accent); text-decoration:none;">📄 ${f.name}</a>
+                        <button onclick="deleteSingleFile(${lec.id}, ${idx})" style="background:none; border:none; color:var(--danger); cursor:pointer; font-weight:bold;">حذف ✕</button>
+                    </div>
+                `).join('');
+
+                list.innerHTML += `
+                    <div class="lecture-row">
+                        <div class="lecture-row-header">
+                            <div>
+                                <span class="badge">الرمز: ${lec.lecture_number}</span>
+                                <strong style="margin-right:8px; font-size:1.05rem;">${lec.title}</strong>
+                                <div class="meta-info">📅 ${lec.day_name} - ${lec.lecture_date}</div>
+                            </div>
+                            <div style="display:flex; gap:8px;">
+                                <label class="btn-icon" style="margin:0; font-size:0.8rem; cursor:pointer;">
+                                    ➕ إضافة ملفات
+                                    <input type="file" multiple class="hidden" onchange="addMoreFiles(${lec.id}, ${lec.lecture_number}, this.files)">
+                                </label>
+                                <button class="btn-sm btn-danger" onclick="deleteLecture(${lec.id})">حذف البوابة 🗑️</button>
+                            </div>
+                        </div>
+                        <div style="margin-top:10px;">${filesHtml}</div>
+                    </div>
+                `;
+            });
+        }
+
+        async function addMoreFiles(lecId, lecNum, newFiles) {
+            if (!newFiles.length) return;
+            showToast('جاري رفع الملفات الإضافية... ⏳');
+
+            const db = await fetchLecturesDB();
+            const uploaded = await uploadFilesToGitHub(newFiles, lecNum);
+            const lecIndex = db.data.findIndex(l => l.id === lecId);
+
+            if (lecIndex !== -1) {
+                db.data[lecIndex].files = [...(db.data[lecIndex].files || []), ...uploaded];
+                await saveLecturesDB(db.data, db.sha);
+                showToast('✅ تمت إضافة الملفات بنجاح!');
+                loadAdminLectures();
+            }
+        }
+
+        async function deleteSingleFile(lecId, fileIndex) {
+            showToast('جاري حذف الملف...');
+            const db = await fetchLecturesDB();
+            const lecIndex = db.data.findIndex(l => l.id === lecId);
+
+            if (lecIndex !== -1) {
+                db.data[lecIndex].files.splice(fileIndex, 1);
+                await saveLecturesDB(db.data, db.sha);
+                showToast('🗑️ تم حذف الملف');
+                loadAdminLectures();
+            }
+        }
+
+        async function deleteLecture(id) {
+            if (!confirm('هل أنت متأكد من حذف هذه البوابة نهائياً؟')) return;
+            showToast('جاري الحذف...');
+            const db = await fetchLecturesDB();
+            const filtered = db.data.filter(l => l.id !== id);
+            await saveLecturesDB(filtered, db.sha);
+            showToast('🗑️ تم حذف البوابة');
+            loadAdminLectures();
+        }
+
+        function logout() {
+            document.getElementById('loginView').classList.remove('hidden');
+            document.getElementById('lectureView').classList.add('hidden');
+            document.getElementById('adminView').classList.add('hidden');
+            document.getElementById('logoutBtn').classList.add('hidden');
+            document.getElementById('password').value = '';
+            document.getElementById('username').value = '';
+        }
+    </script>
+</body>
+</html>
