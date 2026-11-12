@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>بوابة المحاضرات الذكية</title>
+    <title>بوابة المواد والمحاضرات الذكية</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 
     <style>
@@ -109,6 +109,7 @@
             align-items: center;
             gap: 10px;
             color: var(--text-primary);
+            cursor: pointer;
         }
 
         .logo-dot {
@@ -185,7 +186,7 @@
             color: var(--text-secondary);
         }
 
-        input[type="text"], input[type="password"], input[type="number"], input[type="date"] {
+        input[type="text"], input[type="password"], input[type="number"], input[type="date"], select {
             width: 100%;
             padding: 13px 16px;
             border-radius: 14px;
@@ -196,7 +197,7 @@
             outline: none;
         }
 
-        input:focus {
+        input:focus, select:focus {
             border-color: var(--accent);
             box-shadow: 0 0 0 4px var(--accent-glow);
         }
@@ -259,6 +260,31 @@
             margin: 0 auto 1.2rem;
         }
 
+        /* شبكة المواد */
+        .subjects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 1.2rem;
+            margin-top: 1.5rem;
+        }
+
+        .subject-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 1.6rem;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .subject-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px var(--accent-glow);
+        }
+
         .lecture-header {
             border-bottom: 1px solid var(--border);
             padding-bottom: 1.2rem;
@@ -291,7 +317,7 @@
             gap: 15px;
         }
 
-        .link-item:hover { border-color: var(--accent); transform: translateX(-4px); }
+        .link-item:hover { border-color: var(--accent); }
 
         .btn-link {
             background: var(--accent);
@@ -300,7 +326,7 @@
             border-radius: 12px;
             text-decoration: none;
             font-weight: 700;
-            font-size: 0.9rem;
+            font-size: 0.9node;
             white-space: nowrap;
         }
         .btn-link:hover { background: var(--accent-hover); box-shadow: 0 5px 15px var(--accent-glow); }
@@ -327,6 +353,20 @@
         .btn-danger { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: none; padding: 8px 14px; border-radius: 10px; font-weight: 700; cursor: pointer; }
         .btn-danger:hover { background: var(--danger); color: white; }
 
+        .btn-copy {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+            border: 1px solid var(--success);
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .btn-copy:hover { background: var(--success); color: white; }
+
         .hidden { display: none !important; }
     </style>
 </head>
@@ -336,13 +376,13 @@
     <div class="cursor-glow" id="cursorGlow"></div>
 
     <div class="top-banner" id="topBanner">
-        <span>✨ أهلاً بك في المنصة الأكاديمية للمحاضرات — أدخل بياناتك للمتابعة</span>
+        <span>✨ أهلاً بك في المنصة الأكاديمية للمحاضرات — اختر مادتك أو ادخل بياناتك</span>
     </div>
 
     <header>
-        <div class="logo">
+        <div class="logo" onclick="goHome()">
             <span class="logo-dot"></span>
-            <span>بوابة المحاضرات</span>
+            <span>بوابة المواد الدراسية</span>
         </div>
         <div class="header-actions">
             <button class="btn-icon" onclick="toggleTheme()" id="themeIcon">☀️ النهاري</button>
@@ -351,9 +391,23 @@
     </header>
 
     <main>
-        <!-- بوابة الدخول -->
-        <section id="loginView" class="card login-box">
-            <h2>تسجيل الدخول</h2>
+        <!-- اختيار المواد للطلاب أو تسجيل الدخول -->
+        <section id="homeView" class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 1rem;">
+                <div>
+                    <h2>📚 المواد الدراسية المتاحة</h2>
+                    <p style="color: var(--text-secondary); font-size: 0.95rem; margin-top: 5px;">اختر المادة الدراسية لعرض محاضراتها، أو سجل الدخول كمدير</p>
+                </div>
+                <button class="btn-icon" onclick="showLoginModal()">🔐 دخول المدير</button>
+            </div>
+            <div class="subjects-grid" id="subjectsGrid">
+                <!-- تنبثق المواد هنا تلقائياً -->
+            </div>
+        </section>
+
+        <!-- نافذة تسجيل الدخول للمدير -->
+        <section id="loginView" class="card login-box hidden">
+            <h2>تسجيل دخول المدير</h2>
             <form onsubmit="handleLogin(event)">
                 <div class="form-group">
                     <label>اسم المستخدم</label>
@@ -363,11 +417,25 @@
                     <label>كلمة السر</label>
                     <input type="password" id="password" required>
                 </div>
-                <button type="submit" class="btn-primary">دخول البوابة ←</button>
+                <button type="submit" class="btn-primary">دخول لوحة التحكم ←</button>
+                <button type="button" class="btn-icon" onclick="goHome()" style="width: 100%; justify-content: center; margin-top: 10px;">إلغاء والعودة</button>
             </form>
         </section>
 
-        <!-- واجهة الطالب -->
+        <!-- واجهة عرض محاضرات مادة معينة -->
+        <section id="subjectLecturesView" class="card hidden">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div>
+                    <span class="badge" id="subCategoryBadge">مادة دراسية</span>
+                    <h2 id="subTitleName" style="margin-top: 6px;">اسم المادة</h2>
+                </div>
+                <button class="btn-icon" onclick="goHome()">← عودة للمواد</button>
+            </div>
+            <h4 style="margin-bottom: 12px; color: var(--text-secondary);">اختر المحاضرة المطلوبة وادخل رمزها:</h4>
+            <div class="links-grid" id="subjectLecturesGrid"></div>
+        </section>
+
+        <!-- بوابة المحاضرة للطالب -->
         <section id="lectureView" class="card hidden">
             <div class="lecture-header">
                 <span class="badge" id="lecBadge">محاضرة #1</span>
@@ -376,17 +444,36 @@
             </div>
             <h4 style="margin-bottom: 12px; color: var(--text-secondary);">🔗 الروابط والمرفقات المتاحة:</h4>
             <div class="links-grid" id="lecLinksGrid"></div>
+            <button class="btn-icon" onclick="openSubjectLectures(currentSubjectId)" style="margin-top: 1.5rem; justify-content: center;">← العودة لمحاضرات المادة</button>
         </section>
 
-        <!-- لوحة الإدارة -->
+        <!-- لوحة الإدارة الشاملة -->
         <section id="adminView" class="hidden">
+            <!-- إضافة مادة جديدة -->
             <div class="card" style="margin-bottom: 1.5rem;">
-                <h2 style="margin-bottom: 1.2rem;">➕ إضافة بوابة محاضرة جديدة بالروابط</h2>
+                <h2 style="margin-bottom: 1.2rem;">➕ إضافة مادة دراسية جديدة</h2>
+                <form onsubmit="createSubject(event)">
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <input type="text" id="newSubName" placeholder="اسم المادة (مثال: الفيزياء النووية)" required style="flex: 2;">
+                        <input type="text" id="newSubDesc" placeholder="وصف قصير أو اسم الدكتور" required style="flex: 2;">
+                        <button type="submit" class="btn-primary" style="flex: 1; margin-top: 0;">إضافة المادة 🚀</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- إضافة محاضرة لمادة معينة -->
+            <div class="card" style="margin-bottom: 1.5rem;">
+                <h2 style="margin-bottom: 1.2rem;">➕ إضافة محاضرة داخل مادة</h2>
                 <form onsubmit="createLecture(event)">
+                    <div class="form-group">
+                        <label>اختر المادة المستهدفة</label>
+                        <select id="adminSubSelect" required style="width: 100%; padding: 13px 16px; border-radius: 14px; border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text-primary);"></select>
+                    </div>
+
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem;">
                         <div class="form-group">
-                            <label>رقم المحاضرة (الرمز)</label>
-                            <input type="number" id="newLecNum" min="1" required>
+                            <label>ررمز الدخول للمحاضرة (كلمة السر الخاصة بها)</label>
+                            <input type="text" id="newLecCode" placeholder="مثال: 101 أو رمز سري" required>
                         </div>
                         <div class="form-group">
                             <label>عنوان المحاضرة</label>
@@ -399,8 +486,8 @@
                     </div>
 
                     <div class="form-group">
-                        <label>نص الشريط العلوي لهذه البوابة</label>
-                        <input type="text" id="newLecBanner" placeholder="تنبيه أو ترحيب خاص بهذه المحاضرة..." required>
+                        <label>نص الشريط العلوي لهذه المحاضرة</label>
+                        <input type="text" id="newLecBanner" placeholder="تنبيه خاص بهذه المحاضرة..." required>
                     </div>
 
                     <hr style="border-color: var(--border); margin: 1.5rem 0;">
@@ -408,19 +495,20 @@
                     <h4 style="margin-bottom: 10px;">إضافة خانات الروابط (اسم الرابط + الرابط)</h4>
                     <div id="linksInputContainer">
                         <div class="link-row-admin">
-                            <input type="text" placeholder="اسم الرابط (مثال: ملزمة PDF / فيديو يوتيوب)" class="link-name-input" required style="flex: 2;">
+                            <input type="text" placeholder="اسم الرابط (مثال: ملزمة PDF / شرح يوتيوب)" class="link-name-input" required style="flex: 2;">
                             <input type="text" placeholder="الرابط (https://...)" class="link-url-input" required style="flex: 3; margin-right: 10px;">
                         </div>
                     </div>
                     <button type="button" class="btn-icon" onclick="addLinkRow()" style="margin-top: 8px; margin-bottom: 1.5rem;">➕ إضافة خانة رابط أخرى</button>
 
-                    <button type="submit" class="btn-primary">حفظ ونشر البوابة 🚀</button>
+                    <button type="submit" class="btn-primary">حفظ ونشر المحاضرة 🚀</button>
                 </form>
             </div>
 
+            <!-- إدارة وحذف المواد والمحاضرات -->
             <div class="card">
-                <h2 style="margin-bottom: 1rem;">📚 إدارة البوابات الحالية</h2>
-                <div id="adminLecturesList">جاري التحميل...</div>
+                <h2 style="margin-bottom: 1rem;">📚 إدارة المواد والبوابات الحالية</h2>
+                <div id="adminSubjectsList">جاري التحميل...</div>
             </div>
         </section>
     </main>
@@ -434,17 +522,35 @@
         </div>
     </div>
 
-    <script>
-        // التخزين المحلي (LocalStorage) - بدون سيرفرات ولا وجع راس
-        let lecturesData = JSON.parse(localStorage.getItem('my_lectures_data')) || {};
+    <!-- نافذة إدخال رمز المحاضرة البسيطة -->
+    <div id="lectureCodeModal" class="overlay-modal hidden">
+        <div class="status-card" style="max-width: 380px;">
+            <h3 id="modalSubName" style="margin-bottom: 0.5rem; color: var(--accent);">اسم المحاضرة</h3>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.2rem;">أدخل رمز دخول هذه المحاضرة للمتابعة:</p>
+            <form onsubmit="verifyLectureCode(event)">
+                <input type="password" id="targetLectureCodeInput" placeholder="أدخل الرمز هنا..." required style="margin-bottom: 1rem; text-align: center;">
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" class="btn-primary" style="margin-top: 0; flex: 1;">دخول</button>
+                    <button type="button" class="btn-icon" onclick="closeLectureCodeModal()" style="flex: 1; justify-content: center;">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-        const ADMIN_USER = '7moda';
-        const ADMIN_PASS = '@iraqbmw2006';
-        const DEFAULT_BANNER = '✨ أهلاً بك في المنصة الأكاديمية للمحاضرات — أدخل بياناتك للمتابعة';
+    <script>
+        // هيكل البيانات الأساسي في التخزين المحلي (LocalStorage)
+        // النظام يقسم إلى مواد، وكل مادة تحتوي على محاضراتها الخاصة برمزها السري
+        let portalData = JSON.parse(localStorage.getItem('smart_portal_master_data')) || { subjects: {} };
+
+        const ADMIN_USER = 'admin';
+        const ADMIN_PASS = '1234';
+        const DEFAULT_BANNER = '✨ أهلاً بك في المنصة الأكاديمية — اختر مادتك الدراسية للمتابعة';
+
+        let currentSubjectId = null;
+        let selectedLectureForCode = null;
 
         document.getElementById('newLecDate').valueAsDate = new Date();
 
-        // تتبع حركة الماوس
         const glow = document.getElementById('cursorGlow');
         document.addEventListener('mousemove', (e) => {
             glow.style.left = e.clientX + 'px';
@@ -476,67 +582,141 @@
             }, 1500);
         }
 
-        function addLinkRow() {
-            const container = document.getElementById('linksInputContainer');
-            const div = document.createElement('div');
-            div.className = 'link-row-admin';
-            div.style.marginTop = '8px';
-            div.innerHTML = `
-                <input type="text" placeholder="اسم الرابط (مثال: قناة تلكرام / شرح يوتيوب)" class="link-name-input" required style="flex: 2;">
-                <input type="text" placeholder="الرابط (https://...)" class="link-url-input" required style="flex: 3; margin-right: 10px;">
-                <button type="button" class="btn-danger" onclick="this.parentElement.remove()" style="margin-right: 8px; padding: 12px;">✕</button>
-            `;
-            container.appendChild(div);
+        function goHome() {
+            document.getElementById('homeView').classList.remove('hidden');
+            document.getElementById('loginView').classList.add('hidden');
+            document.getElementById('subjectLecturesView').classList.add('hidden');
+            document.getElementById('lectureView').classList.add('hidden');
+            document.getElementById('adminView').classList.add('hidden');
+            document.getElementById('logoutBtn').classList.add('hidden');
+            document.getElementById('topBanner').innerHTML = `<span>${DEFAULT_BANNER}</span>`;
+            renderHomeSubjects();
         }
 
-        function handleLogin(e) {
-            e.preventDefault();
-            const user = document.getElementById('username').value.trim();
-            const pass = document.getElementById('password').value.trim();
+        function showLoginModal() {
+            document.getElementById('homeView').classList.add('hidden');
+            document.getElementById('loginView').classList.remove('hidden');
+        }
 
-            // دخول المدير
-            if (user === ADMIN_USER && pass === ADMIN_PASS) {
-                showStatus('أهلاً بك أيها المدير 👑', 'جاري فتح لوحة التحكم...', () => {
-                    document.getElementById('loginView').classList.add('hidden');
-                    document.getElementById('adminView').classList.remove('hidden');
-                    document.getElementById('logoutBtn').classList.remove('hidden');
-                    document.getElementById('topBanner').innerHTML = '<span>🛠️ وضع الإدارة النشط</span>';
-                    loadAdminLectures();
-                });
+        function renderHomeSubjects() {
+            const grid = document.getElementById('subjectsGrid');
+            const subjectsKeys = Object.keys(portalData.subjects);
+
+            if (subjectsKeys.length === 0) {
+                grid.innerHTML = '<p style="color: var(--text-secondary); grid-column: span 1;">لا توجد مواد دراسية مضافة حالياً. (سجل دخولك كمدير لإضافة المواد).</p>';
                 return;
             }
 
-            // دخول الطالب
-            if (user === 'محاضرة') {
-                const lecNum = pass;
-                if (!lecturesData[lecNum]) {
-                    alert('لا توجد محاضرة منشورة بهذا الرمز حالياً!');
-                    return;
-                }
+            grid.innerHTML = '';
+            subjectsKeys.forEach(subId => {
+                const sub = portalData.subjects[subId];
+                const lecCount = Object.keys(sub.lectures || {}).length;
+                grid.innerHTML += `
+                    <div class="subject-card" onclick="openSubjectLectures('${subId}')">
+                        <div style="font-size: 1.3rem; font-weight: 800;">📖 ${sub.name}</div>
+                        <div style="color: var(--text-secondary); font-size: 0.9rem;">👤 ${sub.description || 'بدون وصف'}</div>
+                        <div style="margin-top: auto; display: flex; justify-content: space-between; align-items: center; pt: 10px;">
+                            <span class="badge">${lecCount} محاضرات</span>
+                            <span style="color: var(--accent); font-weight: 700;">دخول المادة ←</span>
+                        </div>
+                    </div>
+                `;
+            });
+        }
 
-                showStatus('تم تسجيل دخولك بنجاح', 'أهلاً بك، نتمنى لك وقتاً ممتعاً ✨', () => {
-                    renderLectureGate(lecturesData[lecNum]);
+        function openSubjectLectures(subId) {
+            currentSubjectId = subId;
+            const sub = portalData.subjects[subId];
+            
+            document.getElementById('homeView').classList.add('hidden');
+            document.getElementById('lectureView').classList.add('hidden');
+            document.getElementById('subjectLecturesView').classList.remove('hidden');
+
+            document.getElementById('subCategoryBadge').textContent = `قسم المادة`;
+            document.getElementById('subTitleName').textContent = sub.name;
+
+            const grid = document.getElementById('subjectLecturesGrid');
+            const lecKeys = Object.keys(sub.lectures || {});
+
+            if (lecKeys.length === 0) {
+                grid.innerHTML = '<p style="color: var(--text-secondary);">لا توجد محاضرات منشورة في هذه المادة حتى الآن.</p>';
+                return;
+            }
+
+            grid.innerHTML = '';
+            lecKeys.forEach(lecCode => {
+                const lec = sub.lectures[lecCode];
+                grid.innerHTML += `
+                    <div class="link-item" style="cursor: pointer;" onclick="promptLectureCode('${subId}', '${lecCode}')">
+                        <div>
+                            <div style="font-weight: 700; font-size: 1.05rem;">📄 ${lec.title}</div>
+                            <div style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 4px;">📅 التاريخ: ${lec.date} | 🔗 الروابط: ${(lec.links || []).length}</div>
+                        </div>
+                        <button class="btn-link">دخول المحاضرة 🔒</button>
+                    </div>
+                `;
+            });
+        }
+
+        function promptLectureCode(subId, lecCode) {
+            selectedLectureForCode = { subId, lecCode };
+            const sub = portalData.subjects[subId];
+            const lec = sub.lectures[lecCode];
+
+            document.getElementById('modalSubName').textContent = `${sub.name} - ${lec.title}`;
+            document.getElementById('targetLectureCodeInput').value = '';
+            document.getElementById('lectureCodeModal').classList.remove('hidden');
+            document.getElementById('targetLectureCodeInput').focus();
+        }
+
+        function closeLectureCodeModal() {
+            document.getElementById('lectureCodeModal').classList.add('hidden');
+            selectedLectureForCode = null;
+        }
+
+        function verifyLectureCode(e) {
+            e.preventDefault();
+            const enteredCode = document.getElementById('targetLectureCodeInput').value.trim();
+            const { subId, lecCode } = selectedLectureForCode;
+
+            if (enteredCode === lecCode) {
+                closeLectureCodeModal();
+                const lec = portalData.subjects[subId].lectures[lecCode];
+                showStatus('تم التحقق بنجاح', 'أهلاً بك في المحاضرة ✨', () => {
+                    renderLectureGate(lec, subId);
                 });
             } else {
-                alert('اسم المستخدم غير صحيح (استخدم: محاضرة)');
+                alert('رمز الدخول غير صحيح! تأكد من الرمز الخاص بهذه المحاضرة.');
             }
         }
 
-        function renderLectureGate(lec) {
-            document.getElementById('loginView').classList.add('hidden');
+        function renderLectureGate(lec, subId) {
+            document.getElementById('subjectLecturesView').classList.add('hidden');
             document.getElementById('lectureView').classList.remove('hidden');
             document.getElementById('logoutBtn').classList.remove('hidden');
 
             document.getElementById('topBanner').innerHTML = `<span>📢 ${lec.banner || DEFAULT_BANNER}</span>`;
-            document.getElementById('lecBadge').textContent = `محاضرة #${lec.lecture_number}`;
+            document.getElementById('lecBadge').textContent = `محاضرة مادة: ${portalData.subjects[subId].name}`;
             document.getElementById('lecTitle').textContent = lec.title;
-            document.getElementById('lecMeta').textContent = `📅 التاريخ: ${lec.date}`;
+            document.getElementById('lecMeta').textContent = `📅 تاريخ النشر: ${lec.date}`;
 
             const grid = document.getElementById('lecLinksGrid');
             grid.innerHTML = '';
 
+            // زر النسخ السريع الجبار بجانب العنوان أو في الأعلى
+            let quickShareBox = `
+                <div style="background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 16px; padding: 1.2rem; margin-bottom: 1.2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <strong style="font-size: 1rem;">📋 مشاركة المحاضرة للطلاب</strong>
+                        <div style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 3px;">انسخ رسالة كاملة وجاهزة للكروب بضغطة زر</div>
+                    </div>
+                    <button class="btn-copy" onclick="copyLectureShareText('${subId}', '${lec.code || ''}', '${lec.title}')">نسخ رسالة الكروب 📋</button>
+                </div>
+            `;
+            grid.innerHTML += quickShareBox;
+
             if (!lec.links || lec.links.length === 0) {
-                grid.innerHTML = '<p style="color: var(--text-secondary);">لا توجد روابط مضافة في هذه البوابة.</p>';
+                grid.innerHTML += '<p style="color: var(--text-secondary);">لا توجد روابط مضافة في هذه المحاضرة.</p>';
                 return;
             }
 
@@ -550,9 +730,66 @@
             });
         }
 
+        // خاصية زر النسخ السريع الأسطورية
+        function copyLectureShareText(subId, code, title) {
+            const subName = portalData.subjects[subId].name;
+            const siteUrl = window.location.href.split('?')[0];
+            const textToCopy = `📢 *تنبيه محاضرة جديدة* \n📖 المادة: ${subName}\n📄 العنوان: ${title}\n🔗 رابط المنصة: ${siteUrl}\n👤 اسم المستخدم: اختر المادة وادخل برمز المحاضرة\n🔑 رمز الدخول الخاص بالمحاضرة: ${code}\n\nبالتوفيق للجميع! ✨`;
+
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                showStatus('تم النسخ بنجاح! 📋', 'تم نسخ تفاصيل المحاضرة والرمز، ألصقها مباشرة في كروب الطلاب');
+            });
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const user = document.getElementById('username').value.trim();
+            const pass = document.getElementById('password').value.trim();
+
+            if (user === ADMIN_USER && pass === ADMIN_PASS) {
+                showStatus('أهلاً بك أيها المدير 👑', 'جاري فتح لوحة التحكم الشاملة...', () => {
+                    document.getElementById('loginView').classList.add('hidden');
+                    document.getElementById('adminView').classList.remove('hidden');
+                    document.getElementById('logoutBtn').classList.remove('hidden');
+                    document.getElementById('topBanner').innerHTML = '<span>🛠️ وضع الإدارة النشط — تحكم كامل بالمواد والمحاضرات</span>';
+                    loadAdminPanel();
+                });
+            } else {
+                alert('اسم المستخدم أو كلمة السر غير صحيحة!');
+            }
+        }
+
+        function addLinkRow() {
+            const container = document.getElementById('linksInputContainer');
+            const div = document.createElement('div');
+            div.className = 'link-row-admin';
+            div.style.marginTop = '8px';
+            div.innerHTML = `
+                <input type="text" placeholder="اسم الرابط (مثال: قناة تلكرام / شرح يوتيوب)" class="link-name-input" required style="flex: 2;">
+                <input type="text" placeholder="الرابط (https://...)" class="link-url-input" required style="flex: 3; margin-right: 10px;">
+                <button type="button" class="btn-danger" onclick="this.parentElement.remove()" style="margin-right: 8px; padding: 12px;">✕</button>
+            `;
+            container.appendChild(div);
+        }
+
+        function createSubject(e) {
+            e.preventDefault();
+            const name = document.getElementById('newSubName').value.trim();
+            const desc = document.getElementById('newSubDesc').value.trim();
+            const subId = 'sub_' + Date.now();
+
+            portalData.subjects[subId] = { name, description: desc, lectures: {} };
+            localStorage.setItem('smart_portal_master_data', JSON.stringify(portalData));
+
+            showStatus('تم إضافة المادة بنجاح! 📚', `أصبح بإمكانك نشر محاضرات لـ (${name})`);
+            e.target.reset();
+            loadAdminPanel();
+        }
+
         function createLecture(e) {
             e.preventDefault();
-            const num = document.getElementById('newLecNum').value.trim();
+            const subId = document.getElementById('adminSubSelect').value;
+            const code = document.getElementById('newLecCode').value.trim();
             const title = document.getElementById('newLecTitle').value.trim();
             const date = document.getElementById('newLecDate').value;
             const banner = document.getElementById('newLecBanner').value.trim();
@@ -567,60 +804,98 @@
                 }
             }
 
-            lecturesData[num] = { lecture_number: num, title, date, banner, links };
-            localStorage.setItem('my_lectures_data', JSON.stringify(lecturesData));
+            if (!portalData.subjects[subId].lectures) {
+                portalData.subjects[subId].lectures = {};
+            }
 
-            showStatus('تم النشر بنجاح! 🚀', `أصبحت بوابة المحاضرة (${num}) جاهزة`);
+            portalData.subjects[subId].lectures[code] = { code, title, date, banner, links };
+            localStorage.setItem('smart_portal_master_data', JSON.stringify(portalData));
+
+            showStatus('تم نشر المحاضرة بنجاح! 🚀', `تم ربط المحاضرة بالمادة المطلوبة`);
             e.target.reset();
             document.getElementById('newLecDate').valueAsDate = new Date();
-            loadAdminLectures();
+            loadAdminPanel();
         }
 
-        function loadAdminLectures() {
-            const list = document.getElementById('adminLecturesList');
-            const keys = Object.keys(lecturesData);
+        function loadAdminPanel() {
+            const select = document.getElementById('adminSubSelect');
+            const list = document.getElementById('adminSubjectsList');
+            const subjectsKeys = Object.keys(portalData.subjects);
 
-            if (keys.length === 0) {
-                list.innerHTML = '<p style="color: var(--text-secondary);">لا توجد بوابات منشورة.</p>';
+            select.innerHTML = '';
+            if (subjectsKeys.length === 0) {
+                select.innerHTML = '<option value="">أضف مادة أولاً بالأعلى</option>';
+                list.innerHTML = '<p style="color: var(--text-secondary);">لا توجد مواد أو محاضرات مضافة حتى الآن.</p>';
                 return;
             }
 
+            subjectsKeys.forEach(subId => {
+                const sub = portalData.subjects[subId];
+                select.innerHTML += `<option value="${subId}">${sub.name}</option>`;
+            });
+
             list.innerHTML = '';
-            keys.forEach(num => {
-                const lec = lecturesData[num];
+            subjectsKeys.forEach(subId => {
+                const sub = portalData.subjects[subId];
+                let lecturesHtml = '';
+                const lecKeys = Object.keys(sub.lectures || {});
+
+                if (lecKeys.length === 0) {
+                    lecturesHtml = '<p style="color: var(--text-secondary); font-size: 0.85rem; margin: 8px 0;">لا توجد محاضرات في هذه المادة.</p>';
+                } else {
+                    lecKeys.forEach(code => {
+                        const lec = sub.lectures[code];
+                        lecturesHtml += `
+                            <div style="background: var(--bg-primary); border: 1px solid var(--border); border-radius: 12px; padding: 10px; margin-top: 8px; display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <strong>📄 ${lec.title}</strong>
+                                    <div style="font-size: 0.8rem; color: var(--text-secondary);">الرمز السري: ${code} | 📅 ${lec.date}</div>
+                                </div>
+                                <button class="btn-danger" onclick="deleteLecture('${subId}', '${code}')" style="padding: 6px 10px; font-size: 0.8rem;">حذف 🗑️</button>
+                            </div>
+                        `;
+                    });
+                }
+
                 list.innerHTML += `
                     <div class="lecture-row">
-                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 8px;">
                             <div>
-                                <span class="badge">الرمز: ${num}</span>
-                                <strong style="margin-right:8px; font-size:1.05rem;">${lec.title}</strong>
-                                <div style="color:var(--text-secondary); font-size:0.85rem; margin-top:4px;">
-                                    📅 ${lec.date}  |  🔗 عدد الروابط: ${(lec.links || []).length}
-                                </div>
+                                <span class="badge">مادة دراسية</span>
+                                <strong style="margin-right: 8px; font-size: 1.1rem;">📖 ${sub.name}</strong>
+                                <span style="color: var(--text-secondary); font-size: 0.85rem;">(${sub.description || ''})</span>
                             </div>
-                            <button class="btn-danger" onclick="deleteLecture('${num}')">حذف 🗑️</button>
+                            <button class="btn-danger" onclick="deleteSubject('${subId}')">حذف المادة بالكامل 🗑️</button>
+                        </div>
+                        <div style="padding-right: 10px;">
+                            <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-secondary);">محاضرات هذه المادة:</div>
+                            ${lecturesHtml}
                         </div>
                     </div>
                 `;
             });
         }
 
-        function deleteLecture(num) {
-            if (!confirm(`هل تريد حذف بوابة المحاضرة رقم (${num})؟`)) return;
-            delete lecturesData[num];
-            localStorage.setItem('my_lectures_data', JSON.stringify(lecturesData));
-            loadAdminLectures();
+        function deleteLecture(subId, code) {
+            if (!confirm(`هل أنت متأكد من حذف هذه المحاضرة؟`)) return;
+            delete portalData.subjects[subId].lectures[code];
+            localStorage.setItem('smart_portal_master_data', JSON.stringify(portalData));
+            loadAdminPanel();
+        }
+
+        function deleteSubject(subId) {
+            if (!confirm(`هل أنت متأكد من حذف هذه المادة وكل محاضراتها؟`)) return;
+            delete portalData.subjects[subId];
+            localStorage.setItem('smart_portal_master_data', JSON.stringify(portalData));
+            loadAdminPanel();
         }
 
         function logout() {
-            document.getElementById('loginView').classList.remove('hidden');
-            document.getElementById('lectureView').classList.add('hidden');
-            document.getElementById('adminView').classList.add('hidden');
-            document.getElementById('logoutBtn').classList.add('hidden');
-            document.getElementById('topBanner').innerHTML = `<span>${DEFAULT_BANNER}</span>`;
-            document.getElementById('username').value = '';
-            document.getElementById('password').value = '';
+            goHome();
         }
+
+        // تشغيل واجهة المواد عند فتح الموقع لأول مرة
+        renderHomeSubjects();
     </script>
 </body>
 </html>
