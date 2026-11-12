@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>بوابة المحاضرات الجامعية</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --bg-primary: #0f172a;
@@ -51,7 +50,6 @@
                               radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.1), transparent 35%);
         }
 
-        /* Navbar */
         header {
             background: var(--bg-card);
             backdrop-filter: blur(12px);
@@ -99,7 +97,6 @@
             border-color: var(--accent);
         }
 
-        /* Main Container */
         main {
             flex: 1;
             width: 100%;
@@ -108,7 +105,6 @@
             padding: 0 1.2rem;
         }
 
-        /* Cards & Forms */
         .card {
             background: var(--bg-card);
             backdrop-filter: blur(16px);
@@ -130,35 +126,13 @@
             text-align: center;
         }
 
-        .login-box h2 {
-            margin-bottom: 0.5rem;
-            font-weight: 800;
-        }
+        .login-box h2 { margin-bottom: 0.5rem; font-weight: 800; }
+        .login-box p { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.5rem; }
 
-        .login-box p {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            margin-bottom: 1.5rem;
-        }
+        .form-group { margin-bottom: 1.2rem; text-align: right; }
+        label { display: block; margin-bottom: 0.4rem; font-weight: 600; font-size: 0.9rem; color: var(--text-secondary); }
 
-        .form-group {
-            margin-bottom: 1.2rem;
-            text-align: right;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 0.4rem;
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-        }
-
-        input[type="text"],
-        input[type="password"],
-        input[type="number"],
-        input[type="date"],
-        select {
+        input[type="text"], input[type="password"], input[type="number"], input[type="date"], select {
             width: 100%;
             padding: 12px 15px;
             border-radius: 12px;
@@ -186,18 +160,9 @@
             cursor: pointer;
         }
 
-        .btn-primary:hover {
-            background: var(--accent-hover);
-            transform: translateY(-2px);
-        }
+        .btn-primary:hover { background: var(--accent-hover); transform: translateY(-2px); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
-        .btn-primary:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        /* Lecture Gate View */
         .lecture-header {
             border-bottom: 1px solid var(--border);
             padding-bottom: 1.2rem;
@@ -218,11 +183,7 @@
             font-weight: 700;
         }
 
-        .meta-info {
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-            margin-top: 6px;
-        }
+        .meta-info { color: var(--text-secondary); font-size: 0.95rem; margin-top: 6px; }
 
         .files-grid {
             display: grid;
@@ -242,21 +203,9 @@
             gap: 12px;
         }
 
-        .file-item:hover {
-            transform: translateY(-4px);
-            border-color: var(--accent);
-        }
-
-        .file-name {
-            font-weight: 700;
-            font-size: 0.95rem;
-            word-break: break-word;
-        }
-
-        .file-actions {
-            display: flex;
-            gap: 8px;
-        }
+        .file-item:hover { transform: translateY(-4px); border-color: var(--accent); }
+        .file-name { font-weight: 700; font-size: 0.95rem; word-break: break-word; }
+        .file-actions { display: flex; gap: 8px; }
 
         .btn-sm {
             flex: 1;
@@ -270,27 +219,11 @@
             border: none;
         }
 
-        .btn-download {
-            background: var(--accent);
-            color: white;
-        }
+        .btn-download { background: var(--accent); color: white; }
+        .btn-danger { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+        .btn-danger:hover { background: var(--danger); color: white; }
 
-        .btn-danger {
-            background: rgba(239, 68, 68, 0.15);
-            color: var(--danger);
-        }
-
-        .btn-danger:hover {
-            background: var(--danger);
-            color: white;
-        }
-
-        /* Admin Dashboard */
-        .admin-grid {
-            display: grid;
-            gap: 1.5rem;
-        }
-
+        .admin-grid { display: grid; gap: 1.5rem; }
         .lecture-row {
             background: var(--bg-secondary);
             border: 1px solid var(--border);
@@ -323,6 +256,7 @@
             z-index: 999;
             font-weight: 600;
             animation: fadeUp 0.3s ease;
+            text-align: center;
         }
 
         .file-upload-area {
@@ -334,9 +268,7 @@
             background: var(--bg-secondary);
         }
 
-        .file-upload-area:hover {
-            border-color: var(--accent);
-        }
+        .file-upload-area:hover { border-color: var(--accent); }
     </style>
 </head>
 <body>
@@ -353,7 +285,7 @@
     </header>
 
     <main>
-        <!-- 1. واجهة تسجيل الدخول -->
+        <!-- واجهة تسجيل الدخول -->
         <section id="loginView" class="card login-box">
             <h2>تسجيل الدخول</h2>
             <p>أدخل بيانات البوابة للوصول إلى المحاضرة أو لوحة الإدارة</p>
@@ -370,7 +302,7 @@
             </form>
         </section>
 
-        <!-- 2. واجهة عرض المحاضرة (للطلاب / الزوار) -->
+        <!-- واجهة عرض المحاضرة -->
         <section id="lectureView" class="card hidden">
             <div class="lecture-header">
                 <div>
@@ -383,7 +315,7 @@
             <div class="files-grid" id="lecFilesGrid"></div>
         </section>
 
-        <!-- 3. لوحة تحكم المدير (لك وحدك) -->
+        <!-- لوحة تحكم المدير -->
         <section id="adminView" class="admin-grid hidden">
             <div class="card">
                 <h2 style="margin-bottom: 1rem;">➕ إنشاء / إضافة بوابة محاضرة جديدة</h2>
@@ -438,21 +370,21 @@
 
     <script>
         // ==========================================
-        // ⚙️ إعداداتك الخاصة (عدّل هذه الـ 4 أسطر فقط)
+        // ⚙️ إعدادات GitHub الخاصة بك (عدّل هذه الـ 5 أسطر فقط)
         // ==========================================
-        const SUPABASE_URL = 'https://rzwvfjpwiblolgwuwdyd.supabase.co/rest/v1/';
-        const SUPABASE_KEY = 'sb_publishable_wyKl_avtXCmoFprbgb1d-g_0QDddrMQ';
+        const GITHUB_OWNER = 'Sadamiq';           // اسم حسابك في GitHub
+        const GITHUB_REPO  = 'Polytechnic';       // اسم المستودع في GitHub
+        const GITHUB_TOKEN = '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'; // رمز الدخول (Token)
         
-        const ADMIN_USER = '7moda';   // اسم مستخدم المدير (تگدر تغيره)
-        const ADMIN_PASS = '@iraqbmw2006';    // كلمة سر المدير (تگدر تغيرها)
+        const ADMIN_USER   = '7moda';             // اسم مستخدم المدير
+        const ADMIN_PASS   = '@iraqbmw2006';              // كلمة سر المدير
         // ==========================================
 
-        const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const DB_FILE = 'lectures.json';
+        const API_BASE = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents`;
 
-        // تعيين تاريخ اليوم تلقائياً في لوحة المدير
         document.getElementById('newLecDate').valueAsDate = new Date();
 
-        // نظام الإشعارات السريعة (بدون صوت)
         function showToast(msg) {
             const toast = document.getElementById('toast');
             toast.textContent = msg;
@@ -460,7 +392,6 @@
             setTimeout(() => toast.classList.add('hidden'), 3500);
         }
 
-        // تبديل الوضع الليلي والنهاري
         function toggleTheme() {
             const html = document.documentElement;
             const btn = document.getElementById('themeBtn');
@@ -475,15 +406,56 @@
             }
         }
 
-        // استرجاع الثيم المحفوظ
-        if (localStorage.getItem('theme') === 'light') {
-            toggleTheme();
-        }
+        if (localStorage.getItem('theme') === 'light') toggleTheme();
 
         function updateFileCount() {
             const files = document.getElementById('newLecFiles').files;
             document.getElementById('fileCountText').textContent = 
-                files.length > 0 ? `✅ تم اختيار ${files.length} ملفات جاهزة للرفع` : '📂 اضغط هنا لاختيار الملفات';
+                files.length > 0 ? `✅ تم اختيار ${files.length} ملفات جاهزة للرفع` : '📂 اضغط هنا لاختيار الملفات'; }  // دوال ترميز النصوص العربية لـ GitHub Base64 function utf8ToB64(str) { return window.btoa(unescape(encodeURIComponent(str))); }  function b64ToUtf8(str) { return decodeURIComponent(escape(window.atob(str))); }  // قراءة ملف المحاضرات من GitHub async function fetchLecturesDB() { try { const res = await fetch(`${API_BASE}/${DB_FILE}?t=${Date.now()}`, {
+                    headers: { 'Authorization': `token ${GITHUB_TOKEN}` } }); if (res.status === 404) return { data: [], sha: null }; if (!res.ok) throw new Error('خطأ في الاتصال بـ GitHub'); const json = await res.json(); const content = JSON.parse(b64ToUtf8(json.content.replace(/\n/g, ''))); return { data: content, sha: json.sha }; } catch (err) { console.error(err); return null; } }  // حفظ التعديلات على ملف المحاضرات في GitHub async function saveLecturesDB(lecturesArray, sha) { const body = { message: 'تحديث بيانات المحاضرات', content: utf8ToB64(JSON.stringify(lecturesArray, null, 2)) }; if (sha) body.sha = sha;  const res = await fetch(`${API_BASE}/${DB_FILE}`, { method: 'PUT', headers: { 'Authorization': `token ${GITHUB_TOKEN}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(body)
+            });
+            if (!res.ok) throw new Error('فشل حفظ البيانات');
+        }
+
+        // تحويل الملف المرفوع إلى Base64
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        // رفع الملفات مباشرة إلى مجلد داخل GitHub
+        async function uploadFilesToGitHub(fileList, lecNum) {
+            const uploaded = [];
+            for (let file of fileList) {
+                const cleanName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_')}`;
+                const filePath = `files/lec_${lecNum}/${cleanName}`;
+                const base64Content = await fileToBase64(file);
+
+                const res = await fetch(`${API_BASE}/${filePath}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${GITHUB_TOKEN}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ message: `رفع ملف ${file.name}`,
+                        content: base64Content
+                    })
+                });
+
+                if (res.ok) {
+                    const resData = await res.json();
+                    uploaded.push({
+                        name: file.name,
+                        path: filePath,
+                        url: resData.content.download_url
+                    });
+                }
+            }
+            return uploaded;
         }
 
         // تسجيل الدخول
@@ -493,7 +465,6 @@
             const pass = document.getElementById('password').value.trim();
             const btn = document.getElementById('loginBtn');
 
-            // 1. التحقق من دخول المدير
             if (user === ADMIN_USER && pass === ADMIN_PASS) {
                 document.getElementById('loginView').classList.add('hidden');
                 document.getElementById('adminView').classList.remove('hidden');
@@ -503,7 +474,6 @@
                 return;
             }
 
-            // 2. التحقق من دخول المحاضرة
             if (user === 'محاضرة') {
                 const lecNum = parseInt(pass);
                 if (isNaN(lecNum)) {
@@ -514,224 +484,15 @@
                 btn.disabled = true;
                 btn.textContent = 'جاري البحث عن البوابة...';
 
-                const { data, error } = await db
-                    .from('lectures')
-                    .select('*')
-                    .eq('lecture_number', lecNum)
-                    .single();
-
+                const db = await fetchLecturesDB();
                 btn.disabled = false;
                 btn.textContent = 'دخول البوابة ←';
 
-                if (error || !data) {
-                    showToast(`❌ لا توجد بوابة منشورة للمحاضرة رقم (${lecNum}) حالياً`);
+                if (!db) {
+                    showToast('❌ تعذر الاتصال بالمستودع، تأكد من رمز GITHUB_TOKEN');
                     return;
                 }
 
-                renderLectureGate(data);
-            } else {
-                showToast('❌ اسم المستخدم غير صحيح! اكتب كلمة: محاضرة');
-            }
-        }
-
-        // عرض بوابة المحاضرة للطالب
-        function renderLectureGate(lec) {
-            document.getElementById('loginView').classList.add('hidden');
-            document.getElementById('lectureView').classList.remove('hidden');
-            document.getElementById('logoutBtn').classList.remove('hidden');
-
-            document.getElementById('lecBadge').textContent = `محاضرة #${lec.lecture_number}`;
-            document.getElementById('lecTitle').textContent = lec.title;
-            document.getElementById('lecMeta').textContent = `📅 يوم ${lec.day_name}  |  التاريخ: ${lec.lecture_date}`;
-
-            const grid = document.getElementById('lecFilesGrid');
-            grid.innerHTML = '';
-
-            if (!lec.files || lec.files.length === 0) {
-                grid.innerHTML = '<p style="color: var(--text-secondary);">لا توجد ملفات مرفوعة في هذه البوابة بعد.</p>';
-                return;
-            }
-
-            lec.files.forEach(file => {
-                grid.innerHTML += `
-                    <div class="file-item">
-                        <div class="file-name">📄 ${file.name}</div>
-                        <div class="file-actions">
-                            <a href="${file.url}" target="_blank" class="btn-sm btn-download">فتح / تحميل 📥</a>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        // رفع الملفات إلى Supabase Storage
-        async function uploadFilesToStorage(fileList, lecNum) {
-            const uploaded = [];
-            for (let file of fileList) {
-                const cleanName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_')}`;
-                const filePath = `lec_${lecNum}/${cleanName}`;
-
-                const { error } = await db.storage
-                    .from('lecture_files')
-                    .upload(filePath, file);
-
-                if (!error) {
-                    const { data: urlData } = db.storage
-                        .from('lecture_files')
-                        .getPublicUrl(filePath);
-
-                    uploaded.push({
-                        name: file.name,
-                        path: filePath,
-                        url: urlData.publicUrl
-                    });
-                }
-            }
-            return uploaded;
-        }
-
-        // إنشاء بوابة محاضرة جديدة
-        async function createLecture(e) {
-            e.preventDefault();
-            const btn = document.getElementById('saveLecBtn');
-            const lecNum = parseInt(document.getElementById('newLecNum').value);
-            const title = document.getElementById('newLecTitle').value.trim();
-            const dayName = document.getElementById('newLecDay').value;
-            const lecDate = document.getElementById('newLecDate').value;
-            const filesInput = document.getElementById('newLecFiles').files;
-
-            btn.disabled = true;
-            btn.textContent = 'جاري رفع الملفات وحفظ البوابة... ⏳';
-
-            try {
-                // التحقق إذا كان رقم المحاضرة موجود مسبقاً
-                const { data: existing } = await db
-                    .from('lectures')
-                    .select('id')
-                    .eq('lecture_number', lecNum)
-                    .single();
-
-                if (existing) {
-                    showToast(`⚠️ المحاضرة رقم ${lecNum} موجودة مسبقاً! احذفها أو أضف ملفات لها من الأسفل.`);
-                    btn.disabled = false;
-                    btn.textContent = 'حفظ ونشر البوابة 🚀';
-                    return;
-                }
-
-                const uploadedFiles = await uploadFilesToStorage(filesInput, lecNum);
-
-                const { error } = await db.from('lectures').insert([{
-                    lecture_number: lecNum,
-                    title: title,
-                    day_name: dayName,
-                    lecture_date: lecDate,
-                    files: uploadedFiles
-                }]);
-
-                if (error) throw error;
-
-                showToast('✅ تم إنشاء البوابة ورفع الملفات بنجاح!');
-                e.target.reset();
-                document.getElementById('newLecDate').valueAsDate = new Date();
-                updateFileCount();
-                loadAdminLectures();
-            } catch (err) {
-                showToast('❌ حدث خطأ أثناء الحفظ، تأكد من إعدادات Supabase');
-                console.error(err);
-            }
-
-            btn.disabled = false;
-            btn.textContent = 'حفظ ونشر البوابة 🚀';
-        }
-
-        // تحميل قائمة المحاضرات للمدير
-        async function loadAdminLectures() {
-            const list = document.getElementById('adminLecturesList');
-            const { data, error } = await db
-                .from('lectures')
-                .select('*')
-                .order('lecture_number', { ascending: false });
-
-            if (error || !data) {
-                list.innerHTML = '<p>حدث خطأ في جلب البيانات.</p>';
-                return;
-            }
-
-            if (data.length === 0) {
-                list.innerHTML = '<p style="color: var(--text-secondary);">لم تقم بإضافة أي محاضرة بعد.</p>';
-                return;
-            }
-
-            list.innerHTML = '';
-            data.forEach(lec => {
-                const filesHtml = (lec.files || []).map((f, idx) => `
-                    <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 10px; background:var(--bg-primary); border-radius:8px; margin-top:6px; font-size:0.85rem;">
-                        <a href="${f.url}" target="_blank" style="color:var(--accent); text-decoration:none;">📄 ${f.name}</a>
-                        <button onclick="deleteSingleFile(${lec.id}, ${idx})" style="background:none; border:none; color:var(--danger); cursor:pointer; font-weight:bold;">حذف ✕</button>
-                    </div>
-                `).join('');
-
-                list.innerHTML += `
-                    <div class="lecture-row">
-                        <div class="lecture-row-header">
-                            <div>
-                                <span class="badge">الرمز: ${lec.lecture_number}</span>
-                                <strong style="margin-right:8px; font-size:1.05rem;">${lec.title}</strong>
-                                <div class="meta-info">📅 ${lec.day_name} - ${lec.lecture_date}</div>
-                            </div>
-                            <div style="display:flex; gap:8px;">
-                                <label class="btn-icon" style="margin:0; font-size:0.8rem; cursor:pointer;">
-                                    ➕ إضافة ملفات
-                                    <input type="file" multiple class="hidden" onchange="addMoreFiles(${lec.id}, ${lec.lecture_number}, this.files)">
-                                </label>
-                                <button class="btn-sm btn-danger" onclick="deleteLecture(${lec.id})">حذف البوابة 🗑️</button>
-                            </div>
-                        </div>
-                        <div style="margin-top:10px;">${filesHtml}</div>
-                    </div>
-                `;
-            });
-        }
-
-        // إضافة ملفات إضافية لمحاضرة موجودة
-        async function addMoreFiles(lecId, lecNum, newFiles) {
-            if (!newFiles.length) return;
-            showToast('جاري رفع الملفات الإضافية... ⏳');
-
-            const { data: lec } = await db.from('lectures').select('files').eq('id', lecId).single();
-            const uploaded = await uploadFilesToStorage(newFiles, lecNum);
-            const updatedFiles = [...(lec.files || []), ...uploaded];
-
-            await db.from('lectures').update({ files: updatedFiles }).eq('id', lecId);
-            showToast('✅ تمت إضافة الملفات بنجاح!');
-            loadAdminLectures();
-        }
-
-        // حذف ملف واحد من محاضرة
-        async function deleteSingleFile(lecId, fileIndex) {
-            const { data: lec } = await db.from('lectures').select('files').eq('id', lecId).single();
-            const updatedFiles = lec.files.filter((_, idx) => idx !== fileIndex);
-            await db.from('lectures').update({ files: updatedFiles }).eq('id', lecId);
-            showToast('🗑️ تم حذف الملف');
-            loadAdminLectures();
-        }
-
-        // حذف بوابة بالكامل
-        async function deleteLecture(id) {
-            if (!confirm('هل أنت متأكد من حذف هذه البوابة نهائياً؟')) return;
-            await db.from('lectures').delete().eq('id', id);
-            showToast('🗑️ تم حذف البوابة');
-            loadAdminLectures();
-        }
-
-        // تسجيل الخروج
-        function logout() {
-            document.getElementById('loginView').classList.remove('hidden');
-            document.getElementById('lectureView').classList.add('hidden');
-            document.getElementById('adminView').classList.add('hidden');
-            document.getElementById('logoutBtn').classList.add('hidden');
-            document.getElementById('password').value = '';
-        }
-    </script>
-</body>
-</html>
+                const lecture = db.data.find(l => l.lecture_number === lecNum);
+                if (!lecture) {
+                    showToast(`❌ لا توجد ب
