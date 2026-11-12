@@ -3,33 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>بوابة المحاضرات الجامعية</title>
+    <title>بوابة المحاضرات الذكية</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- مكتبات Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+
     <style>
         :root {
-            --bg-primary: #0f172a;
-            --bg-secondary: #1e293b;
-            --bg-card: rgba(30, 41, 59, 0.75);
-            --text-primary: #f8fafc;
-            --text-secondary: #94a3b8;
+            --bg-primary: #090d16;
+            --bg-secondary: #111827;
+            --bg-card: rgba(17, 24, 39, 0.78);
+            --text-primary: #f9fafb;
+            --text-secondary: #9ca3af;
             --accent: #3b82f6;
+            --accent-glow: rgba(59, 130, 246, 0.35);
             --accent-hover: #2563eb;
-            --border: rgba(255, 255, 255, 0.1);
+            --border: rgba(255, 255, 255, 0.08);
+            --grid-color: rgba(255, 255, 255, 0.03);
             --danger: #ef4444;
             --success: #10b981;
-            --shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.4);
+            --shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6);
         }
 
         [data-theme="light"] {
-            --bg-primary: #f1f5f9;
+            --bg-primary: #f3f4f6;
             --bg-secondary: #ffffff;
-            --bg-card: rgba(255, 255, 255, 0.85);
-            --text-primary: #0f172a;
-            --text-secondary: #475569;
+            --bg-card: rgba(255, 255, 255, 0.88);
+            --text-primary: #111827;
+            --text-secondary: #4b5563;
             --accent: #2563eb;
+            --accent-glow: rgba(37, 99, 235, 0.2);
             --accent-hover: #1d4ed8;
             --border: rgba(0, 0, 0, 0.08);
-            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
+            --grid-color: rgba(0, 0, 0, 0.04);
+            --shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.08);
         }
 
         * {
@@ -37,7 +47,7 @@
             margin: 0;
             padding: 0;
             font-family: 'Cairo', sans-serif;
-            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
+            transition: background-color 0.35s ease, color 0.35s ease, border-color 0.3s ease, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
         body {
@@ -46,30 +56,78 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            background-image: radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.12), transparent 35%),
-                              radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.1), transparent 35%);
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .bg-grid {
+            position: fixed;
+            inset: 0;
+            background-image: 
+                linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
+                linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: -2;
+        }
+
+        .cursor-glow {
+            position: fixed;
+            width: 450px;
+            height: 450px;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: -1;
+            transition: width 0.3s, height 0.3s;
+        }
+
+        .top-banner {
+            background: linear-gradient(90deg, var(--accent-hover), var(--accent));
+            color: #ffffff;
+            text-align: center;
+            padding: 10px 15px;
+            font-size: 0.92rem;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
+            z-index: 120;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
         header {
             background: var(--bg-card);
-            backdrop-filter: blur(12px);
+            backdrop-filter: blur(16px);
             border-bottom: 1px solid var(--border);
-            padding: 1rem 5%;
+            padding: 0.9rem 5%;
             display: flex;
             justify-content: space-between;
             align-items: center;
             position: sticky;
-            top: 0;
+            top: 41px;
             z-index: 100;
         }
 
         .logo {
-            font-size: 1.3rem;
+            font-size: 1.25rem;
             font-weight: 800;
             display: flex;
             align-items: center;
             gap: 10px;
-            color: var(--accent);
+            color: var(--text-primary);
+        }
+
+        .logo-dot {
+            width: 10px;
+            height: 10px;
+            background: var(--accent);
+            border-radius: 50%;
+            box-shadow: 0 0 12px var(--accent);
         }
 
         .header-actions {
@@ -86,7 +144,7 @@
             border-radius: 12px;
             cursor: pointer;
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 0.88rem;
             display: flex;
             align-items: center;
             gap: 6px;
@@ -95,47 +153,58 @@
         .btn-icon:hover {
             transform: translateY(-2px);
             border-color: var(--accent);
+            box-shadow: 0 5px 15px var(--accent-glow);
         }
+
+        .btn-icon:active { transform: scale(0.95); }
+
+        .theme-icon-spin { display: inline-block; transition: transform 0.5s ease; }
+        .spin-active { transform: rotate(360deg); }
 
         main {
             flex: 1;
             width: 100%;
-            max-width: 900px;
-            margin: 2rem auto;
+            max-width: 920px;
+            margin: 2.5rem auto;
             padding: 0 1.2rem;
         }
 
         .card {
             background: var(--bg-card);
-            backdrop-filter: blur(16px);
+            backdrop-filter: blur(20px);
             border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 2rem;
+            border-radius: 24px;
+            padding: 2.2rem;
             box-shadow: var(--shadow);
-            animation: fadeUp 0.4s ease;
+            animation: slideFadeIn 0.45s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
+        @keyframes slideFadeIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
         .login-box {
-            max-width: 420px;
-            margin: 3rem auto;
+            max-width: 410px;
+            margin: 2.5rem auto;
             text-align: center;
         }
 
-        .login-box h2 { margin-bottom: 0.5rem; font-weight: 800; }
-        .login-box p { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.5rem; }
+        .login-box h2 { font-size: 1.6rem; font-weight: 800; margin-bottom: 1.8rem; }
 
-        .form-group { margin-bottom: 1.2rem; text-align: right; }
-        label { display: block; margin-bottom: 0.4rem; font-weight: 600; font-size: 0.9rem; color: var(--text-secondary); }
+        .form-group { margin-bottom: 1.3rem; text-align: right; }
+        label {
+            display: block;
+            margin-bottom: 0.45rem;
+            font-weight: 600;
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+        }
 
         input[type="text"], input[type="password"], input[type="number"], input[type="date"], select {
             width: 100%;
-            padding: 12px 15px;
-            border-radius: 12px;
+            padding: 13px 16px;
+            border-radius: 14px;
             border: 1px solid var(--border);
             background: var(--bg-secondary);
             color: var(--text-primary);
@@ -145,23 +214,89 @@
 
         input:focus, select:focus {
             border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+            box-shadow: 0 0 0 4px var(--accent-glow);
+            transform: translateY(-1px);
         }
 
         .btn-primary {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             border: none;
-            border-radius: 12px;
+            border-radius: 14px;
             background: var(--accent);
             color: #fff;
             font-size: 1rem;
             font-weight: 700;
             cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            margin-top: 0.5rem;
         }
 
-        .btn-primary:hover { background: var(--accent-hover); transform: translateY(-2px); }
-        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .btn-primary::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 60%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn-primary:hover::after { left: 120%; }
+        .btn-primary:hover { background: var(--accent-hover); transform: translateY(-2px); box-shadow: 0 8px 20px var(--accent-glow); }
+        .btn-primary:active { transform: scale(0.97); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .overlay-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(9, 13, 22, 0.75);
+            backdrop-filter: blur(12px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            animation: fadeIn 0.25s ease;
+        }
+
+        .status-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            padding: 2.5rem 2rem;
+            text-align: center;
+            max-width: 340px;
+            width: 90%;
+            box-shadow: var(--shadow);
+            animation: popScale 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes popScale {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .check-circle {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: rgba(16, 185, 129, 0.15);
+            border: 2px solid var(--success);
+            color: var(--success);
+            font-size: 2.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.2rem;
+            box-shadow: 0 0 25px rgba(16, 185, 129, 0.3);
+        }
+
+        .error-circle {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: var(--danger);
+            color: var(--danger);
+            box-shadow: 0 0 25px rgba(239, 68, 68, 0.3);
+        }
 
         .lecture-header {
             border-bottom: 1px solid var(--border);
@@ -169,7 +304,7 @@
             margin-bottom: 1.5rem;
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
+            align-items: center;
             flex-wrap: wrap;
             gap: 10px;
         }
@@ -177,86 +312,76 @@
         .badge {
             background: rgba(59, 130, 246, 0.15);
             color: var(--accent);
-            padding: 4px 12px;
+            padding: 5px 14px;
             border-radius: 20px;
             font-size: 0.85rem;
             font-weight: 700;
         }
 
-        .meta-info { color: var(--text-secondary); font-size: 0.95rem; margin-top: 6px; }
-
         .files-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
             gap: 1rem;
-            margin-top: 1rem;
         }
 
         .file-item {
             background: var(--bg-secondary);
             border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 1rem;
+            border-radius: 16px;
+            padding: 1.1rem;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            gap: 12px;
+            gap: 14px;
         }
 
         .file-item:hover { transform: translateY(-4px); border-color: var(--accent); }
-        .file-name { font-weight: 700; font-size: 0.95rem; word-break: break-word; }
         .file-actions { display: flex; gap: 8px; }
 
         .btn-sm {
             flex: 1;
             text-align: center;
-            padding: 8px;
+            padding: 9px;
             border-radius: 10px;
             font-size: 0.85rem;
-            font-weight: 600;
+            font-weight: 700;
             text-decoration: none;
             cursor: pointer;
             border: none;
         }
 
+        .btn-sm:active { transform: scale(0.95); }
+        .btn-preview { background: rgba(59, 130, 246, 0.15); color: var(--accent); }
+        .btn-preview:hover { background: var(--accent); color: white; }
         .btn-download { background: var(--accent); color: white; }
+        .btn-share { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+        .btn-share:hover { background: var(--success); color: white; }
         .btn-danger { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
         .btn-danger:hover { background: var(--danger); color: white; }
 
-        .admin-grid { display: grid; gap: 1.5rem; }
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-box {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.2rem;
+            text-align: center;
+        }
+
+        .stat-num { font-size: 1.8rem; font-weight: 800; color: var(--accent); }
+
         .lecture-row {
             background: var(--bg-secondary);
             border: 1px solid var(--border);
-            border-radius: 14px;
+            border-radius: 16px;
             padding: 1.2rem;
             margin-bottom: 1rem;
-        }
-
-        .lecture-row-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .hidden { display: none !important; }
-
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--bg-secondary);
-            border: 1px solid var(--accent);
-            color: var(--text-primary);
-            padding: 12px 24px;
-            border-radius: 12px;
-            box-shadow: var(--shadow);
-            z-index: 999;
-            font-weight: 600;
-            animation: fadeUp 0.3s ease;
-            text-align: center;
         }
 
         .file-upload-area {
@@ -269,77 +394,121 @@
         }
 
         .file-upload-area:hover { border-color: var(--accent); }
+
+        .preview-box {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            width: 92%;
+            max-width: 800px;
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .preview-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .preview-body {
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .preview-body iframe, .preview-body img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border: none;
+        }
+
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
+    <div class="bg-grid"></div>
+    <div class="cursor-glow" id="cursorGlow"></div>
+
+    <div class="top-banner" id="topBanner">
+        <span>✨ أهلاً بك في المنصة الأكاديمية للمحاضرات — أدخل بياناتك للمتابعة</span>
+    </div>
+
     <header>
         <div class="logo">
-            <span>🎓</span>
-            <span>أرشيف المحاضرات</span>
+            <span class="logo-dot"></span>
+            <span>بوابة المحاضرات</span>
         </div>
         <div class="header-actions">
-            <button class="btn-icon" onclick="toggleTheme()" id="themeBtn">☀️ نهاري</button>
+            <button class="btn-icon" onclick="toggleTheme()" id="themeBtn">
+                <span class="theme-icon-spin" id="themeIcon">☀️</span>
+                <span id="themeText">نهاري</span>
+            </button>
             <button class="btn-icon hidden" onclick="logout()" id="logoutBtn">🚪 خروج</button>
         </div>
     </header>
 
     <main>
-        <!-- واجهة تسجيل الدخول -->
         <section id="loginView" class="card login-box">
             <h2>تسجيل الدخول</h2>
-            <p>أدخل بيانات البوابة للوصول إلى المحاضرة أو لوحة الإدارة</p>
-            <form id="loginForm" onsubmit="handleLogin(event)">
+            <form onsubmit="handleLogin(event)">
                 <div class="form-group">
                     <label>اسم المستخدم</label>
-                    <input type="text" id="username" placeholder="اكتب: admin أو محاضرة" required>
+                    <input type="text" id="username" required autocomplete="off">
                 </div>
                 <div class="form-group">
-                    <label>الرمز (كلمة المرور أو رقم المحاضرة)</label>
-                    <input type="password" id="password" placeholder="كلمة السر أو رقم المحاضرة..." required>
+                    <label>كلمة السر</label>
+                    <input type="password" id="password" required>
                 </div>
                 <button type="submit" class="btn-primary" id="loginBtn">دخول البوابة ←</button>
             </form>
         </section>
 
-        <!-- واجهة عرض المحاضرة -->
         <section id="lectureView" class="card hidden">
             <div class="lecture-header">
                 <div>
                     <span class="badge" id="lecBadge">محاضرة #1</span>
                     <h2 id="lecTitle" style="margin-top: 8px;">عنوان المحاضرة</h2>
-                    <div class="meta-info" id="lecMeta">📅 اليوم - التاريخ</div>
+                    <div style="color: var(--text-secondary); font-size: 0.92rem; margin-top: 4px;" id="lecMeta">📅 التاريخ</div>
                 </div>
             </div>
-            <h4 style="margin-bottom: 10px;">📁 الملفات والمرفقات:</h4>
+            <h4 style="margin-bottom: 12px; color: var(--text-secondary);">📁 العناصر والمرفقات المتاحة:</h4>
             <div class="files-grid" id="lecFilesGrid"></div>
         </section>
 
-        <!-- لوحة تحكم المدير -->
-        <section id="adminView" class="admin-grid hidden">
-            <div class="card">
-                <h2 style="margin-bottom: 1rem;">➕ إنشاء / إضافة بوابة محاضرة جديدة</h2>
+        <section id="adminView" class="hidden">
+            <div class="stats-bar">
+                <div class="stat-box">
+                    <div class="stat-num" id="statGates">0</div>
+                    <div style="color: var(--text-secondary); font-size: 0.9rem;">عدد البوابات المنشورة</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-num" id="statFiles">0</div>
+                    <div style="color: var(--text-secondary); font-size: 0.9rem;">إجمالي العناصر المرفوعة</div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-bottom: 1.5rem;">
+                <h2 style="margin-bottom: 1.2rem;">➕ إنشاء بوابة محاضرة جديدة</h2>
                 <form onsubmit="createLecture(event)">
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
                         <div class="form-group">
-                            <label>رقم المحاضرة (هو رمز الدخول)</label>
-                            <input type="number" id="newLecNum" min="1" placeholder="1" required>
+                            <label>رقم المحاضرة (الرمز)</label>
+                            <input type="number" id="newLecNum" min="1" required>
                         </div>
                         <div class="form-group">
                             <label>عنوان المحاضرة</label>
-                            <input type="text" id="newLecTitle" placeholder="مثال: المحاضرة الأولى - برمجة" required>
-                        </div>
-                        <div class="form-group">
-                            <label>اليوم</label>
-                            <select id="newLecDay">
-                                <option value="السبت">السبت</option>
-                                <option value="الأحد">الأحد</option>
-                                <option value="الاثنين">الاثنين</option>
-                                <option value="الثلاثاء">الثلاثاء</option>
-                                <option value="الأربعاء">الأربعاء</option>
-                                <option value="الخميس">الخميس</option>
-                                <option value="الجمعة">الجمعة</option>
-                            </select>
+                            <input type="text" id="newLecTitle" required>
                         </div>
                         <div class="form-group">
                             <label>التاريخ</label>
@@ -348,9 +517,14 @@
                     </div>
 
                     <div class="form-group">
-                        <label>رفع الملفات (تگدر تختار أكثر من ملف بنفس الوقت)</label>
+                        <label>نص الشريط العلوي الخاص بهذه البوابة</label>
+                        <input type="text" id="newLecBanner" placeholder="يكتب هنا التنبيه الخاص بهذه المحاضرة فقط..." required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>رفع الملفات والعناصر</label>
                         <div class="file-upload-area" onclick="document.getElementById('newLecFiles').click()">
-                            <p id="fileCountText">📂 اضغط هنا لاختيار الملفات (PDF, صور, وورد, صوت...)</p>
+                            <p id="fileCountText">📂 اضغط لاختيار الملفات أو الصور</p>
                             <input type="file" id="newLecFiles" multiple class="hidden" onchange="updateFileCount()">
                         </div>
                     </div>
@@ -360,187 +534,163 @@
             </div>
 
             <div class="card">
-                <h2 style="margin-bottom: 1rem;">📚 البوابات المنشورة (إدارة وتعديل)</h2>
+                <h2 style="margin-bottom: 1rem;">📚 إدارة البوابات الحالية</h2>
                 <div id="adminLecturesList">جاري التحميل...</div>
             </div>
         </section>
     </main>
 
-    <div id="toast" class="toast hidden"></div>
+    <div id="statusOverlay" class="overlay-modal hidden">
+        <div class="status-card">
+            <div class="check-circle" id="statusIcon">✓</div>
+            <h3 id="statusTitle" style="margin-bottom: 0.5rem;">تم تسجيل دخولك بنجاح</h3>
+            <p id="statusMsg" style="color: var(--text-secondary); font-size: 0.95rem;">أهلاً بك، نتمنى لك تجربة دراسية ممتعة وموفقة ✨</p>
+        </div>
+    </div>
+
+    <div id="previewModal" class="overlay-modal hidden">
+        <div class="preview-box">
+            <div class="preview-header">
+                <strong id="previewTitle">معاينة الملف</strong>
+                <button class="btn-icon" onclick="closePreview()">✕ إغلاق</button>
+            </div>
+            <div class="preview-body" id="previewBody"></div>
+        </div>
+    </div>
 
     <script>
-        // ==========================================
-        // ⚙️ إعدادات GitHub الخاصة بك (تم ضبطها مسبقاً)
-        // ==========================================
-        const GITHUB_OWNER = 'Sadamiq';           
-        const GITHUB_REPO  = 'Polytechnic';       
-        const GITHUB_TOKEN = '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'; // تأكد أن رمزك الصحيح هنا
-        
-        const ADMIN_USER   = '7moda';             
-        const ADMIN_PASS   = '@iraqbmw2006';              
-        // ==========================================
+        // ==========================================================
+        // 🔑 إعدادات Firebase الخاصة بك (ألصقها هنا)
+        // ==========================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSy...",
+            authDomain: "lectures-portal-3e087.firebaseapp.com",
+            projectId: "lectures-portal-3e087",
+            storageBucket: "lectures-portal-3e087.appspot.com",
+            messagingSenderId: "335242394053",
+            appId: "1:335242394053:web:e255..."
+        };
 
-        const DB_FILE = 'lectures.json';
-        const API_BASE = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents`;
+        const ADMIN_USER = 'admin';
+        const ADMIN_PASS = '1234';
+        const DEFAULT_BANNER = '✨ أهلاً بك في المنصة الأكاديمية للمحاضرات — أدخل بياناتك للمتابعة';
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const storage = firebase.storage();
 
         document.getElementById('newLecDate').valueAsDate = new Date();
 
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            toast.textContent = msg;
-            toast.classList.remove('hidden');
-            setTimeout(() => toast.classList.add('hidden'), 3500);
-        }
+        const glow = document.getElementById('cursorGlow');
+        document.addEventListener('mousemove', (e) => {
+            glow.style.left = e.clientX + 'px';
+            glow.style.top = e.clientY + 'px';
+        });
+        document.addEventListener('touchmove', (e) => {
+            if(e.touches[0]) {
+                glow.style.left = e.touches[0].clientX + 'px';
+                glow.style.top = e.touches[0].clientY + 'px';
+            }
+        });
 
         function toggleTheme() {
             const html = document.documentElement;
-            const btn = document.getElementById('themeBtn');
+            const icon = document.getElementById('themeIcon');
+            const text = document.getElementById('themeText');
+            
+            icon.classList.add('spin-active');
+            setTimeout(() => icon.classList.remove('spin-active'), 500);
+
             if (html.getAttribute('data-theme') === 'dark') {
                 html.setAttribute('data-theme', 'light');
-                btn.textContent = '🌙 ليلي';
+                icon.textContent = '🌙';
+                text.textContent = 'ليلي';
                 localStorage.setItem('theme', 'light');
             } else {
                 html.setAttribute('data-theme', 'dark');
-                btn.textContent = '☀️ نهاري';
+                icon.textContent = '☀️';
+                text.textContent = 'نهاري';
                 localStorage.setItem('theme', 'dark');
             }
         }
-
         if (localStorage.getItem('theme') === 'light') toggleTheme();
+
+        function showStatusScreen(isSuccess, title, msg, callback) {
+            const overlay = document.getElementById('statusOverlay');
+            const icon = document.getElementById('statusIcon');
+            document.getElementById('statusTitle').textContent = title;
+            document.getElementById('statusMsg').textContent = msg;
+
+            if (isSuccess) {
+                icon.textContent = '✓';
+                icon.classList.remove('error-circle');
+            } else {
+                icon.textContent = '✕';
+                icon.classList.add('error-circle');
+            }
+
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                if (callback) callback();
+            }, 1600);
+        }
 
         function updateFileCount() {
             const files = document.getElementById('newLecFiles').files;
             document.getElementById('fileCountText').textContent = 
-                files.length > 0 ? `✅ تم اختيار ${files.length} ملفات جاهزة للرفع` : '📂 اضغط هنا لاختيار الملفات';
+                files.length > 0 ? `✅ تم تحديد ${files.length} عناصر جاهزة للنشر` : '📂 اضغط لاختيار الملفات أو الصور';
         }
 
-        function utf8ToB64(str) {
-            return window.btoa(unescape(encodeURIComponent(str)));
-        }
-
-        function b64ToUtf8(str) {
-            return decodeURIComponent(escape(window.atob(str)));
-        }
-
-        async function fetchLecturesDB() {
-            try {
-                const res = await fetch(`${API_BASE}/${DB_FILE}?t=${Date.now()}`, {
-                    headers: { 'Authorization': `token ${GITHUB_TOKEN}` }
-                });
-                if (res.status === 404) return { data: [], sha: null };
-                if (!res.ok) throw new Error('خطأ في الاتصال بـ GitHub');
-                const json = await res.json();
-                const content = JSON.parse(b64ToUtf8(json.content.replace(/\n/g, '')));
-                return { data: content, sha: json.sha };
-            } catch (err) {
-                console.error(err);
-                return null;
-            }
-        }
-
-        async function saveLecturesDB(lecturesArray, sha) {
-            const body = {
-                message: 'تحديث بيانات المحاضرات',
-                content: utf8ToB64(JSON.stringify(lecturesArray, null, 2))
-            };
-            if (sha) body.sha = sha;
-
-            const res = await fetch(`${API_BASE}/${DB_FILE}`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `token ${GITHUB_TOKEN}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(body)
-            });
-            if (!res.ok) throw new Error('فشل حفظ البيانات');
-        }
-
-        function fileToBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result.split(',')[1]);
-                reader.onerror = error => reject(error);
-            });
-        }
-
-        async function uploadFilesToGitHub(fileList, lecNum) {
-            const uploaded = [];
-            for (let file of fileList) {
-                const cleanName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_')}`;
-                const filePath = `files/lec_${lecNum}/${cleanName}`;
-                const base64Content = await fileToBase64(file);
-
-                const res = await fetch(`${API_BASE}/${filePath}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `token ${GITHUB_TOKEN}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        message: `رفع ملف ${file.name}`,
-                        content: base64Content
-                    })
-                });
-
-                if (res.ok) {
-                    const resData = await res.json();
-                    uploaded.push({
-                        name: file.name,
-                        path: filePath,
-                        url: resData.content.download_url
-                    });
-                }
-            }
-            return uploaded;
-        }
-
-        // تسجيل الدخول (مع منع إعادة تحميل الصفحة)
         async function handleLogin(e) {
-            e.preventDefault(); // منع إعادة تحميل الصفحة
-            
+            e.preventDefault();
             const user = document.getElementById('username').value.trim();
             const pass = document.getElementById('password').value.trim();
             const btn = document.getElementById('loginBtn');
 
             if (user === ADMIN_USER && pass === ADMIN_PASS) {
-                document.getElementById('loginView').classList.add('hidden');
-                document.getElementById('adminView').classList.remove('hidden');
-                document.getElementById('logoutBtn').classList.remove('hidden');
-                showToast('أهلاً بك في لوحة الإدارة يا مدير 👋');
-                loadAdminLectures();
+                showStatusScreen(true, 'أهلاً بك أيها المدير 👑', 'تم التحقق بنجاح، جاري فتح لوحة التحكم...', () => {
+                    document.getElementById('loginView').classList.add('hidden');
+                    document.getElementById('adminView').classList.remove('hidden');
+                    document.getElementById('logoutBtn').classList.remove('hidden');
+                    document.getElementById('topBanner').innerHTML = '<span>🛠️ وضع الإدارة النشط — يمكنك التحكم بجميع البوابات</span>';
+                    loadAdminLectures();
+                });
                 return;
             }
 
-            if (user === 'محاضرة' || !isNaN(parseInt(user))) {
-                const lecNum = parseInt(pass || user);
+            if (user === 'محاضرة') {
+                const lecNum = parseInt(pass);
                 if (isNaN(lecNum)) {
-                    showToast('⚠️ الرمز يجب أن يكون رقم المحاضرة (مثال: 1)');
+                    showStatusScreen(false, 'رمز غير صالح', 'يرجى إدخال رقم المحاضرة في خانة كلمة السر');
                     return;
                 }
 
                 btn.disabled = true;
-                btn.textContent = 'جاري البحث عن البوابة...';
+                btn.textContent = 'جاري التحقق...';
 
-                const db = await fetchLecturesDB();
-                btn.disabled = false;
-                btn.textContent = 'دخول البوابة ←';
+                try {
+                    const doc = await db.collection('lectures').doc(String(lecNum)).get();
+                    btn.disabled = false;
+                    btn.textContent = 'دخول البوابة ←';
 
-                if (!db) {
-                    showToast('❌ تعذر الاتصال بالمستودع، تأكد من رمز GITHUB_TOKEN');
-                    return;
+                    if (!doc.exists) {
+                        showStatusScreen(false, 'البوابة غير متوفرة', `لا توجد محاضرة منشورة بالرمز (${lecNum}) حالياً`);
+                        return;
+                    }
+
+                    const lecData = doc.data();
+                    showStatusScreen(true, 'تم تسجيل دخولك بنجاح', 'نتمنى لك وقتاً مثمراً ومليئاً بالفائدة ✨', () => {
+                        renderLectureGate(lecData);
+                    });
+
+                } catch (err) {
+                    btn.disabled = false;
+                    btn.textContent = 'دخول البوابة ←';
+                    showStatusScreen(false, 'خطأ في الاتصال', 'تأكد من تفعيل Firestore في لوحة تحكم Firebase');
                 }
-
-                const lecture = db.data.find(l => l.lecture_number === lecNum);
-                if (!lecture) {
-                    showToast(`❌ لا توجد بوابة منشورة للمحاضرة رقم (${lecNum}) حالياً`);
-                    return;
-                }
-
-                renderLectureGate(lecture);
             } else {
-                showToast('❌ اسم المستخدم غير صحيح! اكتب admin أو محاضرة');
+                showStatusScreen(false, 'بيانات غير صحيحة', 'تأكد من كتابة اسم المستخدم (محاضرة) بشكل صحيح');
             }
         }
 
@@ -549,24 +699,27 @@
             document.getElementById('lectureView').classList.remove('hidden');
             document.getElementById('logoutBtn').classList.remove('hidden');
 
+            document.getElementById('topBanner').innerHTML = `<span>📢 ${lec.banner || DEFAULT_BANNER}</span>`;
+
             document.getElementById('lecBadge').textContent = `محاضرة #${lec.lecture_number}`;
             document.getElementById('lecTitle').textContent = lec.title;
-            document.getElementById('lecMeta').textContent = `📅 يوم ${lec.day_name}  |  التاريخ: ${lec.lecture_date}`;
+            document.getElementById('lecMeta').textContent = `📅 تاريخ النشر: ${lec.lecture_date}  |  عدد العناصر: ${(lec.files || []).length}`;
 
             const grid = document.getElementById('lecFilesGrid');
             grid.innerHTML = '';
 
             if (!lec.files || lec.files.length === 0) {
-                grid.innerHTML = '<p style="color: var(--text-secondary);">لا توجد ملفات مرفوعة في هذه البوابة بعد.</p>';
+                grid.innerHTML = '<p style="color: var(--text-secondary);">لا توجد عناصر مرفوعة في هذه البوابة بعد.</p>';
                 return;
             }
 
             lec.files.forEach(file => {
                 grid.innerHTML += `
                     <div class="file-item">
-                        <div class="file-name">📄 ${file.name}</div>
+                        <div style="font-weight: 700; word-break: break-word;">📄 ${file.name}</div>
                         <div class="file-actions">
-                            <a href="${file.url}" target="_blank" class="btn-sm btn-download">فتح / تحميل 📥</a>
+                            <button onclick="openPreview('${file.url}', '${file.name}')" class="btn-sm btn-preview">معاينة 👁️</button>
+                            <a href="${file.url}" target="_blank" download class="btn-sm btn-download">تحميل 📥</a>
                         </div>
                     </div>
                 `;
@@ -578,46 +731,38 @@
             const btn = document.getElementById('saveLecBtn');
             const lecNum = parseInt(document.getElementById('newLecNum').value);
             const title = document.getElementById('newLecTitle').value.trim();
-            const dayName = document.getElementById('newLecDay').value;
             const lecDate = document.getElementById('newLecDate').value;
+            const banner = document.getElementById('newLecBanner').value.trim();
             const filesInput = document.getElementById('newLecFiles').files;
 
             btn.disabled = true;
-            btn.textContent = 'جاري رفع الملفات وحفظ البوابة على GitHub... ⏳';
+            btn.textContent = 'جاري رفع العناصر وحفظ البوابة... ⏳';
 
             try {
-                const db = await fetchLecturesDB();
-                if (!db) throw new Error('تأكد من رمز GitHub Token');
-
-                if (db.data.some(l => l.lecture_number === lecNum)) {
-                    showToast(`⚠️ المحاضرة رقم ${lecNum} موجودة مسبقاً!`);
-                    btn.disabled = false;
-                    btn.textContent = 'حفظ ونشر البوابة 🚀';
-                    return;
+                const uploadedFiles = [];
+                for (let file of filesInput) {
+                    const storageRef = storage.ref(`lectures/lec_${lecNum}/${Date.now()}_${file.name}`);
+                    await storageRef.put(file);
+                    const url = await storageRef.getDownloadURL();
+                    uploadedFiles.push({ name: file.name, url: url });
                 }
 
-                const uploadedFiles = await uploadFilesToGitHub(filesInput, lecNum);
-
-                const newLec = {
-                    id: Date.now(),
+                await db.collection('lectures').doc(String(lecNum)).set({
                     lecture_number: lecNum,
                     title: title,
-                    day_name: dayName,
                     lecture_date: lecDate,
+                    banner: banner,
                     files: uploadedFiles
-                };
+                });
 
-                db.data.unshift(newLec);
-                await saveLecturesDB(db.data, db.sha);
-
-                showToast('✅ تم إنشاء البوابة ورفع الملفات بنجاح!');
+                showStatusScreen(true, 'تم النشر بنجاح! 🚀', `أصبحت بوابة المحاضرة (${lecNum}) جاهزة للطلاب`);
                 e.target.reset();
                 document.getElementById('newLecDate').valueAsDate = new Date();
                 updateFileCount();
                 loadAdminLectures();
             } catch (err) {
-                showToast('❌ حدث خطأ! تأكد من وضع رمز GITHUB_TOKEN الصحيح');
                 console.error(err);
+                showStatusScreen(false, 'فشل الحفظ', 'تأكد من تفعيل Firestore و Storage في Firebase');
             }
 
             btn.disabled = false;
@@ -626,89 +771,77 @@
 
         async function loadAdminLectures() {
             const list = document.getElementById('adminLecturesList');
-            list.innerHTML = 'جاري جلب البوابات من GitHub...';
+            const snapshot = await db.collection('lectures').orderBy('lecture_number', 'desc').get();
 
-            const db = await fetchLecturesDB();
-            if (!db) {
-                list.innerHTML = '<p style="color:var(--danger);">❌ تعذر الاتصال! تأكد من تعديل سطر GITHUB_TOKEN في الكود.</p>';
+            let totalFiles = 0;
+            document.getElementById('statGates').textContent = snapshot.size;
+
+            if (snapshot.empty) {
+                list.innerHTML = '<p style="color: var(--text-secondary);">لا توجد بوابات منشورة حالياً.</p>';
+                document.getElementById('statFiles').textContent = '0';
                 return;
             }
 
-            if (db.data.length === 0) {
-                list.innerHTML = '<p style="color: var(--text-secondary);">لم تقم بإضافة أي محاضرة بعد.</p>';
-                return;
-            }
-
-            const sorted = [...db.data].sort((a, b) => b.lecture_number - a.lecture_number);
             list.innerHTML = '';
-
-            sorted.forEach(lec => {
-                const filesHtml = (lec.files || []).map((f, idx) => `
-                    <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 10px; background:var(--bg-primary); border-radius:8px; margin-top:6px; font-size:0.85rem;">
-                        <a href="${f.url}" target="_blank" style="color:var(--accent); text-decoration:none;">📄 ${f.name}</a>
-                        <button onclick="deleteSingleFile(${lec.id}, ${idx})" style="background:none; border:none; color:var(--danger); cursor:pointer; font-weight:bold;">حذف ✕</button>
-                    </div>
-                `).join('');
+            snapshot.forEach(doc => {
+                const lec = doc.data();
+                const filesCount = (lec.files || []).length;
+                totalFiles += filesCount;
 
                 list.innerHTML += `
                     <div class="lecture-row">
-                        <div class="lecture-row-header">
+                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
                             <div>
                                 <span class="badge">الرمز: ${lec.lecture_number}</span>
                                 <strong style="margin-right:8px; font-size:1.05rem;">${lec.title}</strong>
-                                <div class="meta-info">📅 ${lec.day_name} - ${lec.lecture_date}</div>
+                                <div style="color:var(--text-secondary); font-size:0.85rem; margin-top:5px;">
+                                    📅 ${lec.lecture_date}  |  📦 العناصر: ${filesCount}
+                                </div>
+                                <div style="color:var(--accent); font-size:0.85rem; margin-top:3px;">
+                                    📢 الشريط: ${lec.banner}
+                                </div>
                             </div>
                             <div style="display:flex; gap:8px;">
-                                <label class="btn-icon" style="margin:0; font-size:0.8rem; cursor:pointer;">
-                                    ➕ إضافة ملفات
-                                    <input type="file" multiple class="hidden" onchange="addMoreFiles(${lec.id}, ${lec.lecture_number}, this.files)">
-                                </label>
-                                <button class="btn-sm btn-danger" onclick="deleteLecture(${lec.id})">حذف البوابة 🗑️</button>
+                                <button class="btn-sm btn-share" onclick="shareGate(${lec.lecture_number}, '${lec.title}')">مشاركة 📤</button>
+                                <button class="btn-sm btn-danger" onclick="deleteLecture(${lec.lecture_number})">حذف 🗑️</button>
                             </div>
                         </div>
-                        <div style="margin-top:10px;">${filesHtml}</div>
                     </div>
                 `;
             });
+
+            document.getElementById('statFiles').textContent = totalFiles;
         }
 
-        async function addMoreFiles(lecId, lecNum, newFiles) {
-            if (!newFiles.length) return;
-            showToast('جاري رفع الملفات الإضافية... ⏳');
-
-            const db = await fetchLecturesDB();
-            const uploaded = await uploadFilesToGitHub(newFiles, lecNum);
-            const lecIndex = db.data.findIndex(l => l.id === lecId);
-
-            if (lecIndex !== -1) {
-                db.data[lecIndex].files = [...(db.data[lecIndex].files || []), ...uploaded];
-                await saveLecturesDB(db.data, db.sha);
-                showToast('✅ تمت إضافة الملفات بنجاح!');
-                loadAdminLectures();
-            }
+        function shareGate(num, title) {
+            const url = window.location.href;
+            const text = `📚 تم نشر: ${title}\n🔗 رابط البوابة: ${url}\n👤 اسم المستخدم: محاضرة\n🔑 كلمة السر: ${num}`;
+            navigator.clipboard.writeText(text);
+            showStatusScreen(true, 'تم نسخ رسالة المشاركة! 📋', 'يمكنك الآن لصقها مباشرة في كروب الطلاب');
         }
 
-        async function deleteSingleFile(lecId, fileIndex) {
-            showToast('جاري حذف الملف...');
-            const db = await fetchLecturesDB();
-            const lecIndex = db.data.findIndex(l => l.id === lecId);
-
-            if (lecIndex !== -1) {
-                db.data[lecIndex].files.splice(fileIndex, 1);
-                await saveLecturesDB(db.data, db.sha);
-                showToast('🗑️ تم حذف الملف');
-                loadAdminLectures();
-            }
-        }
-
-        async function deleteLecture(id) {
-            if (!confirm('هل أنت متأكد من حذف هذه البوابة نهائياً؟')) return;
-            showToast('جاري الحذف...');
-            const db = await fetchLecturesDB();
-            const filtered = db.data.filter(l => l.id !== id);
-            await saveLecturesDB(filtered, db.sha);
-            showToast('🗑️ تم حذف البوابة');
+        async function deleteLecture(num) {
+            if (!confirm(`هل تريد حذف بوابة المحاضرة رقم (${num})؟`)) return;
+            await db.collection('lectures').doc(String(num)).delete();
             loadAdminLectures();
+        }
+
+        function openPreview(url, name) {
+            document.getElementById('previewTitle').textContent = name;
+            const body = document.getElementById('previewBody');
+            const isImg = /\.(jpg|jpeg|png|gif|webp)$/i.test(name);
+            
+            if (isImg) {
+                body.innerHTML = `<img src="${url}" alt="${name}">`;
+            } else {
+                body.innerHTML = `<iframe src="https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true"></iframe>`;
+            }
+            document.getElementById('previewModal').classList.remove('hidden');
+        }
+
+        function closePreview() {
+            document.getElementById('previewModal').classList.add('hidden');
+            document.getElementById('previewBody').innerHTML = '';
         }
 
         function logout() {
@@ -716,8 +849,9 @@
             document.getElementById('lectureView').classList.add('hidden');
             document.getElementById('adminView').classList.add('hidden');
             document.getElementById('logoutBtn').classList.add('hidden');
-            document.getElementById('password').value = '';
+            document.getElementById('topBanner').innerHTML = `<span>${DEFAULT_BANNER}</span>`;
             document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
         }
     </script>
 </body>
