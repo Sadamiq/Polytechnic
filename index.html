@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بوابة المحاضرات الجامعية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: rgba(30, 41, 59, 0.75);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --border: rgba(255, 255, 255, 0.1);
+            --danger: #ef4444;
+            --success: #10b981;
+            --shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.4);
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #f1f5f9;
+            --bg-secondary: #ffffff;
+            --bg-card: rgba(255, 255, 255, 0.85);
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --accent: #2563eb;
+            --accent-hover: #1d4ed8;
+            --border: rgba(0, 0, 0, 0.08);
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Cairo', sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-image: radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.12), transparent 35%),
+                              radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.1), transparent 35%);
+        }
+
+        /* Navbar */
+        header {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1.3rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--accent);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn-icon {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 8px 14px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-icon:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent);
+        }
+
+        /* Main Container */
+        main {
+            flex: 1;
+            width: 100%;
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1.2rem;
+        }
+
+        /* Cards & Forms */
+        .card {
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            animation: fadeUp 0.4s ease;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .login-box {
+            max-width: 420px;
+            margin: 3rem auto;
+            text-align: center;
+        }
+
+        .login-box h2 {
+            margin-bottom: 0.5rem;
+            font-weight: 800;
+        }
+
+        .login-box p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+            text-align: right;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.4rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="number"],
+        input[type="date"],
+        select {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 1rem;
+            outline: none;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            background: var(--accent);
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Lecture Gate View */
+        .lecture-header {
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1.2rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .badge {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--accent);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .meta-info {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-top: 6px;
+        }
+
+        .files-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .file-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .file-item:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent);
+        }
+
+        .file-name {
+            font-weight: 700;
+            font-size: 0.95rem;
+            word-break: break-word;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-sm {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-download {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+        }
+
+        .btn-danger:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* Admin Dashboard */
+        .admin-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .lecture-row {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .lecture-row-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .hidden { display: none !important; }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-secondary);
+            border: 1px solid var(--accent);
+            color: var(--text-primary);
+            padding: 12px 24px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            z-index: 999;
+            font-weight: 600;
+            animation: fadeUp 0.3s ease;
+        }
+
+        .file-upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 14px;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            background: var(--bg-secondary);
+        }
+
+        .file-upload-area:hover {
+            border-color: var(--accent);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">
+            <span>🎓</span>
+            <span>أرشيف المحاضرات</span>
+        </div>
+        <div class="header-actions">
+            <button class="btn-icon" onclick="toggleTheme()" id="themeBtn">☀️ نهاري</button>
+            <button class="btn-icon hidden" onclick="logout()" id="logoutBtn">🚪 خروج</button>
+        </div>
+    </header>
+
+    <main>
+        <!-- 1. واجهة تسجيل الدخول -->
+        <section id="loginView" class="card login-box">
+            <h2>تسجيل الدخول</h2>
+            <p>أدخل بيانات البوابة للوصول إلى المحاضرة أو لوحة الإدارة</p>
+            <form onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label>اسم المستخدم</label>
+                    <input type="text" id="username" placeholder="اكتب: محاضرة" required>
+                </div>
+                <div class="form-group">
+                    <label>الرمز (رقم المحاضرة)</label>
+                    <input type="password" id="password" placeholder="مثال: 1 أو 2 ..." required>
+                </div>
+                <button type="submit" class="btn-primary" id="loginBtn">دخول البوابة ←</button>
+            </form>
+        </section>
+
+        <!-- 2. واجهة عرض المحاضرة (للطلاب / الزوار) -->
+        <section id="lectureView" class="card hidden">
+            <div class="lecture-header">
+                <div>
+                    <span class="badge" id="lecBadge">محاضرة #1</span>
+                    <h2 id="lecTitle" style="margin-top: 8px;">عنوان المحاضرة</h2>
+                    <div class="meta-info" id="lecMeta">📅 اليوم - التاريخ</div>
+                </div>
+            </div>
+            <h4 style="margin-bottom: 10px;">📁 الملفات والمرفقات:</h4>
+            <div class="files-grid" id="lecFilesGrid"></div>
+        </section>
+
+        <!-- 3. لوحة تحكم المدير (لك وحدك) -->
+        <section id="adminView" class="admin-grid hidden">
+            <div class="card">
+                <h2 style="margin-bottom: 1rem;">➕ إنشاء / إضافة بوابة محاضرة جديدة</h2>
+                <form onsubmit="createLecture(event)">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
+                        <div class="form-group">
+                            <label>رقم المحاضرة (هو رمز الدخول)</label>
+                            <input type="number" id="newLecNum" min="1" placeholder="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label>عنوان المحاضرة</label>
+                            <input type="text" id="newLecTitle" placeholder="مثال: المحاضرة الأولى - برمجة" required>
+                        </div>
+                        <div class="form-group">
+                            <label>اليوم</label>
+                            <select id="newLecDay">
+                                <option value="السبت">السبت</option>
+                                <option value="الأحد">الأحد</option>
+                                <option value="الاثنين">الاثنين</option>
+                                <option value="الثلاثاء">الثلاثاء</option>
+                                <option value="الأربعاء">الأربعاء</option>
+                                <option value="الخميس">الخميس</option>
+                                <option value="الجمعة">الجمعة</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>التاريخ</label>
+                            <input type="date" id="newLecDate" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>رفع الملفات (تگدر تختار أكثر من ملف بنفس الوقت)</label>
+                        <div class="file-upload-area" onclick="document.getElementById('newLecFiles').click()">
+                            <p id="fileCountText">📂 اضغط هنا لاختيار الملفات (PDF, صور, وورد, صوت...)</p>
+                            <input type="file" id="newLecFiles" multiple class="hidden" onchange="updateFileCount()">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary" id="saveLecBtn">حفظ ونشر البوابة 🚀</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2 style="margin-bottom: 1rem;">📚 البوابات المنشورة (إدارة وتعديل)</h2>
+                <div id="adminLecturesList">جاري التحميل...</div>
+            </div>
+        </section>
+    </main>
+
+    <div id="toast" class="toast hidden"></div>
+
+    <script>
+        // ==========================================
+        // ⚙️ إعداداتك الخاصة (عدّل هذه الـ 4 أسطر فقط)
+        // ==========================================
+        const SUPABASE_URL = 'https://rzwvfjpwiblolgwuwdyd.supabase.co/rest/v1/';
+        const SUPABASE_KEY = 'sb_publishable_wyKl_avtXCmoFprbgb1d-g_0QDddrMQ';
+        
+        const ADMIN_USER = '7moda';   // اسم مستخدم المدير (تگدر تغيره)
+        const ADMIN_PASS = '@iraqbmw2006';    // كلمة سر المدير (تگدر تغيرها)
+        // ==========================================
+
+        const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // تعيين تاريخ اليوم تلقائياً في لوحة المدير
+        document.getElementById('newLecDate').valueAsDate = new Date();
+
+        // نظام الإشعارات السريعة (بدون صوت)
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3500);
+        }
+
+        // تبديل الوضع الليلي والنهاري
+        function toggleTheme() {
+            const html = document.documentElement;
+            const btn = document.getElementById('themeBtn');
+            if (html.getAttribute('data-theme') === 'dark') {
+                html.setAttribute('data-theme', 'light');
+                btn.textContent = '🌙 ليلي';
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.setAttribute('data-theme', 'dark');
+                btn.textContent = '☀️ نهاري';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // استرجاع الثيم المحفوظ
+        if (localStorage.getItem('theme') === 'light') {
+            toggleTheme();
+        }
+
+        function updateFileCount() {
+            const files = document.getElementById('newLecFiles').files;
+            document.getElementById('fileCountText').textContent = 
+                files.length > 0 ? `✅ تم اختيار ${files.length} ملفات جاهزة للرفع` : '📂 اضغط هنا لاختيار الملفات';
+        }
+
+        // تسجيل الدخول
+        async function handleLogin(e) {
+            e.preventDefault();
+            const user = document.getElementById('username').value.trim();
+            const pass = document.getElementById('password').value.trim();
+            const btn = document.getElementById('loginBtn');
+
+            // 1. التحقق من دخول المدير
+            if (user === ADMIN_USER && pass === ADMIN_PASS) {
+                document.getElementById('loginView').classList.add('hidden');
+                document.getElementById('adminView').classList.remove('hidden');
+                document.getElementById('logoutBtn').classList.remove('hidden');
+                showToast('أهلاً بك في لوحة الإدارة يا مدير 👋');
+                loadAdminLectures();
+                return;
+            }
+
+            // 2. التحقق من دخول المحاضرة
+            if (user === 'محاضرة') {
+                const lecNum = parseInt(pass);
+                if (isNaN(lecNum)) {
+                    showToast('⚠️ الرمز يجب أن يكون رقم المحاضرة (مثال: 1)');
+                    return;
+                }
+
+                btn.disabled = true;
+                btn.textContent = 'جاري البحث عن البوابة...';
+
+                const { data, error } = await db
+                    .from('lectures')
+                    .select('*')
+                    .eq('lecture_number', lecNum)
+                    .single();
+
+                btn.disabled = false;
+                btn.textContent = 'دخول البوابة ←';
+
+                if (error || !data) {
+                    showToast(`❌ لا توجد بوابة منشورة للمحاضرة رقم (${lecNum}) حالياً`);
+                    return;
+                }
+
+                renderLectureGate(data);
+            } else {
+                showToast('❌ اسم المستخدم غير صحيح! اكتب كلمة: محاضرة');
+            }
+        }
+
+        // عرض بوابة المحاضرة للطالب
+        function renderLectureGate(lec) {
+            document.getElementById('loginView').classList.add('hidden');
+            document.getElementById('lectureView').classList.remove('hidden');
+            document.getElementById('logoutBtn').classList.remove('hidden');
+
+            document.getElementById('lecBadge').textContent = `محاضرة #${lec.lecture_number}`;
+            document.getElementById('lecTitle').textContent = lec.title;
+            document.getElementById('lecMeta').textContent = `📅 يوم ${lec.day_name}  |  التاريخ: ${lec.lecture_date}`;
+
+            const grid = document.getElementById('lecFilesGrid');
+            grid.innerHTML = '';
+
+            if (!lec.files || lec.files.length === 0) {
+                grid.innerHTML = '<p style="color: var(--text-secondary);">لا توجد ملفات مرفوعة في هذه البوابة بعد.</p>';
+                return;
+            }
+
+            lec.files.forEach(file => {
+                grid.innerHTML += `
+                    <div class="file-item">
+                        <div class="file-name">📄 ${file.name}</div>
+                        <div class="file-actions">
+                            <a href="${file.url}" target="_blank" class="btn-sm btn-download">فتح / تحميل 📥</a>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // رفع الملفات إلى Supabase Storage
+        async function uploadFilesToStorage(fileList, lecNum) {
+            const uploaded = [];
+            for (let file of fileList) {
+                const cleanName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_')}`;
+                const filePath = `lec_${lecNum}/${cleanName}`;
+
+                const { error } = await db.storage
+                    .from('lecture_files')
+                    .upload(filePath, file);
+
+                if (!error) {
+                    const { data: urlData } = db.storage
+                        .from('lecture_files')
+                        .getPublicUrl(filePath);
+
+                    uploaded.push({
+                        name: file.name,
+                        path: filePath,
+                        url: urlData.publicUrl
+                    });
+                }
+            }
+            return uploaded;
+        }
+
+        // إنشاء بوابة محاضرة جديدة
+        async function createLecture(e) {
+            e.preventDefault();
+            const btn = document.getElementById('saveLecBtn');
+            const lecNum = parseInt(document.getElementById('newLecNum').value);
+            const title = document.getElementById('newLecTitle').value.trim();
+            const dayName = document.getElementById('newLecDay').value;
+            const lecDate = document.getElementById('newLecDate').value;
+            const filesInput = document.getElementById('newLecFiles').files;
+
+            btn.disabled = true;
+            btn.textContent = 'جاري رفع الملفات وحفظ البوابة... ⏳';
+
+            try {
+                // التحقق إذا كان رقم المحاضرة موجود مسبقاً
+                const { data: existing } = await db
+                    .from('lectures')
+                    .select('id')
+                    .eq('lecture_number', lecNum)
+                    .single();
+
+                if (existing) {
+                    showToast(`⚠️ المحاضرة رقم ${lecNum} موجودة مسبقاً! احذفها أو أضف ملفات لها من الأسفل.`);
+                    btn.disabled = false;
+                    btn.textContent = 'حفظ ونشر البوابة 🚀';
+                    return;
+                }
+
+                const uploadedFiles = await uploadFilesToStorage(filesInput, lecNum);
+
+                const { error } = await db.from('lectures').insert([{
+                    lecture_number: lecNum,
+                    title: title,
+                    day_name: dayName,
+                    lecture_date: lecDate,
+                    files: uploadedFiles
+                }]);
+
+                if (error) throw error;
+
+                showToast('✅ تم إنشاء البوابة ورفع الملفات بنجاح!');
+                e.target.reset();
+                document.getElementById('newLecDate').valueAsDate = new Date();
+                updateFileCount();
+                loadAdminLectures();
+            } catch (err) {
+                showToast('❌ حدث خطأ أثناء الحفظ، تأكد من إعدادات Supabase');
+                console.error(err);
+            }
+
+            btn.disabled = false;
+            btn.textContent = 'حفظ ونشر البوابة 🚀';
+        }
+
+        // تحميل قائمة المحاضرات للمدير
+        async function loadAdminLectures() {
+            const list = document.getElementById('adminLecturesList');
+            const { data, error } = await db
+                .from('lectures')
+                .select('*')
+                .order('lecture_number', { ascending: false });
+
+            if (error || !data) {
+                list.innerHTML = '<p>حدث خطأ في جلب البيانات.</p>';
+                return;
+            }
+
+            if (data.length === 0) {
+                list.innerHTML = '<p style="color: var(--text-secondary);">لم تقم بإضافة أي محاضرة بعد.</p>';
+                return;
+            }
+
+            list.innerHTML = '';
+            data.forEach(lec => {
+                const filesHtml = (lec.files || []).map((f, idx) => `
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 10px; background:var(--bg-primary); border-radius:8px; margin-top:6px; font-size:0.85rem;">
+                        <a href="${f.url}" target="_blank" style="color:var(--accent); text-decoration:none;">📄 ${f.name}</a>
+                        <button onclick="deleteSingleFile(${lec.id}, ${idx})" style="background:none; border:none; color:var(--danger); cursor:pointer; font-weight:bold;">حذف ✕</button>
+                    </div>
+                `).join('');
+
+                list.innerHTML += `
+                    <div class="lecture-row">
+                        <div class="lecture-row-header">
+                            <div>
+                                <span class="badge">الرمز: ${lec.lecture_number}</span>
+                                <strong style="margin-right:8px; font-size:1.05rem;">${lec.title}</strong>
+                                <div class="meta-info">📅 ${lec.day_name} - ${lec.lecture_date}</div>
+                            </div>
+                            <div style="display:flex; gap:8px;">
+                                <label class="btn-icon" style="margin:0; font-size:0.8rem; cursor:pointer;">
+                                    ➕ إضافة ملفات
+                                    <input type="file" multiple class="hidden" onchange="addMoreFiles(${lec.id}, ${lec.lecture_number}, this.files)">
+                                </label>
+                                <button class="btn-sm btn-danger" onclick="deleteLecture(${lec.id})">حذف البوابة 🗑️</button>
+                            </div>
+                        </div>
+                        <div style="margin-top:10px;">${filesHtml}</div>
+                    </div>
+                `;
+            });
+        }
+
+        // إضافة ملفات إضافية لمحاضرة موجودة
+        async function addMoreFiles(lecId, lecNum, newFiles) {
+            if (!newFiles.length) return;
+            showToast('جاري رفع الملفات الإضافية... ⏳');
+
+            const { data: lec } = await db.from('lectures').select('files').eq('id', lecId).single();
+            const uploaded = await uploadFilesToStorage(newFiles, lecNum);
+            const updatedFiles = [...(lec.files || []), ...uploaded];
+
+            await db.from('lectures').update({ files: updatedFiles }).eq('id', lecId);
+            showToast('✅ تمت إضافة الملفات بنجاح!');
+            loadAdminLectures();
+        }
+
+        // حذف ملف واحد من محاضرة
+        async function deleteSingleFile(lecId, fileIndex) {
+            const { data: lec } = await db.from('lectures').select('files').eq('id', lecId).single();
+            const updatedFiles = lec.files.filter((_, idx) => idx !== fileIndex);
+            await db.from('lectures').update({ files: updatedFiles }).eq('id', lecId);
+            showToast('🗑️ تم حذف الملف');
+            loadAdminLectures();
+        }
+
+        // حذف بوابة بالكامل
+        async function deleteLecture(id) {
+            if (!confirm('هل أنت متأكد من حذف هذه البوابة نهائياً؟')) return;
+            await db.from('lectures').delete().eq('id', id);
+            showToast('🗑️ تم حذف البوابة');
+            loadAdminLectures();
+        }
+
+        // تسجيل الخروج
+        function logout() {
+            document.getElementById('loginView').classList.remove('hidden');
+            document.getElementById('lectureView').classList.add('hidden');
+            document.getElementById('adminView').classList.add('hidden');
+            document.getElementById('logoutBtn').classList.add('hidden');
+            document.getElementById('password').value = '';
+        }
+    </script>
+</body>
+</html>
