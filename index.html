@@ -20,6 +20,8 @@
             --grid-color: rgba(255, 255, 255, 0.03);
             --danger: #ef4444;
             --success: #10b981;
+            --warning: #f59e0b;
+            --warning-glow: rgba(245, 158, 11, 0.25);
             --shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6);
         }
 
@@ -186,7 +188,7 @@
             color: var(--text-secondary);
         }
 
-        input[type="text"], input[type="password"], input[type="number"], input[type="date"], select {
+        input[type="text"], input[type="password"], input[type="number"], input[type="date"], select, textarea {
             width: 100%;
             padding: 13px 16px;
             border-radius: 14px;
@@ -195,9 +197,10 @@
             color: var(--text-primary);
             font-size: 1rem;
             outline: none;
+            resize: vertical;
         }
 
-        input:focus, select:focus {
+        input:focus, select:focus, textarea:focus {
             border-color: var(--accent);
             box-shadow: 0 0 0 4px var(--accent-glow);
         }
@@ -235,7 +238,7 @@
             border-radius: 28px;
             padding: 2.5rem 2rem;
             text-align: center;
-            max-width: 340px;
+            max-width: 380px;
             width: 90%;
             box-shadow: var(--shadow);
             animation: popScale 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -277,12 +280,35 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
+            position: relative;
+            overflow: hidden;
         }
 
         .subject-card:hover {
             border-color: var(--accent);
             transform: translateY(-4px);
             box-shadow: 0 10px 25px var(--accent-glow);
+        }
+
+        /* تنبيه المادة البارز */
+        .subject-alert-box {
+            background: rgba(245, 158, 11, 0.12);
+            border: 1px solid var(--warning);
+            color: #fbbf24;
+            padding: 1rem 1.2rem;
+            border-radius: 16px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            box-shadow: 0 0 20px var(--warning-glow);
+            animation: pulseGlow 2s infinite;
+        }
+
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.3); }
+            70% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
         }
 
         .lecture-header {
@@ -297,6 +323,15 @@
             padding: 5px 14px;
             border-radius: 20px;
             font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .badge-warning {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--warning);
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
             font-weight: 700;
         }
 
@@ -326,7 +361,7 @@
             border-radius: 12px;
             text-decoration: none;
             font-weight: 700;
-            font-size: 0.9node;
+            font-size: 0.9rem;
             white-space: nowrap;
         }
         .btn-link:hover { background: var(--accent-hover); box-shadow: 0 5px 15px var(--accent-glow); }
@@ -376,7 +411,7 @@
     <div class="cursor-glow" id="cursorGlow"></div>
 
     <div class="top-banner" id="topBanner">
-        <span>✨ أهلاً بك في المنصة الأكاديمية للمحاضرات — اختر مادتك أو ادخل بياناتك</span>
+        <span>✨ أهلاً بك في المنصة الأكاديمية — اختر مادتك الدراسية للمتابعة</span>
     </div>
 
     <header>
@@ -400,9 +435,7 @@
                 </div>
                 <button class="btn-icon" onclick="showLoginModal()">🔐 دخول المدير</button>
             </div>
-            <div class="subjects-grid" id="subjectsGrid">
-                <!-- تنبثق المواد هنا تلقائياً -->
-            </div>
+            <div class="subjects-grid" id="subjectsGrid"></div>
         </section>
 
         <!-- نافذة تسجيل الدخول للمدير -->
@@ -431,6 +464,10 @@
                 </div>
                 <button class="btn-icon" onclick="goHome()">← عودة للمواد</button>
             </div>
+
+            <!-- مكان ظهور التنبيه الهام إن وجد للمادة -->
+            <div id="subjectAlertContainer"></div>
+
             <h4 style="margin-bottom: 12px; color: var(--text-secondary);">اختر المحاضرة المطلوبة وادخل رمزها:</h4>
             <div class="links-grid" id="subjectLecturesGrid"></div>
         </section>
@@ -454,9 +491,28 @@
                 <h2 style="margin-bottom: 1.2rem;">➕ إضافة مادة دراسية جديدة</h2>
                 <form onsubmit="createSubject(event)">
                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <input type="text" id="newSubName" placeholder="اسم المادة (مثال: الفيزياء النووية)" required style="flex: 2;">
+                        <input type="text" id="newSubName" placeholder="اسم المادة (مثال: الرياضيات)" required style="flex: 2;">
                         <input type="text" id="newSubDesc" placeholder="وصف قصير أو اسم الدكتور" required style="flex: 2;">
                         <button type="submit" class="btn-primary" style="flex: 1; margin-top: 0;">إضافة المادة 🚀</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- إدارة التنبيهات والتبليغات الفورية لكل مادة -->
+            <div class="card" style="margin-bottom: 1.5rem; border-color: var(--warning);">
+                <h2 style="margin-bottom: 1.2rem; color: var(--warning);">🚨 إدارة التنبيهات والامتحانات (لكل مادة)</h2>
+                <form onsubmit="updateSubjectAlert(event)">
+                    <div class="form-group">
+                        <label>اختر المادة لتحديث تنبيهها أو امتحانها القادم</label>
+                        <select id="alertSubSelect" required style="width: 100%; padding: 13px 16px; border-radius: 14px; border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text-primary);"></select>
+                    </div>
+                    <div class="form-group">
+                        <label>نص التنبيه أو الامتحان (مثال: باجر امتحان يومي بالفصل الثاني / أو تركه فارغاً للإلغاء)</label>
+                        <textarea id="alertTextMsg" rows="3" placeholder="اكتب التنبيه هنا، أو اترك الحقل فارغاً واضغط تحديث لإزالته نهائياً..."></textarea>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button type="submit" class="btn-primary" style="background: var(--warning); color: #000; flex: 2; margin-top: 0;">نشر أو تحديث التنبيه 🔔</button>
+                        <button type="button" class="btn-danger" onclick="clearSubjectAlert()" style="flex: 1;">حذف وإخفاء التنبيه 🗑️</button>
                     </div>
                 </form>
             </div>
@@ -472,8 +528,8 @@
 
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem;">
                         <div class="form-group">
-                            <label>ررمز الدخول للمحاضرة (كلمة السر الخاصة بها)</label>
-                            <input type="text" id="newLecCode" placeholder="مثال: 101 أو رمز سري" required>
+                            <label>رمز الدخول للمحاضرة</label>
+                            <input type="text" id="newLecCode" placeholder="مثال: 101" required>
                         </div>
                         <div class="form-group">
                             <label>عنوان المحاضرة</label>
@@ -538,8 +594,6 @@
     </div>
 
     <script>
-        // هيكل البيانات الأساسي في التخزين المحلي (LocalStorage)
-        // النظام يقسم إلى مواد، وكل مادة تحتوي على محاضراتها الخاصة برمزها السري
         let portalData = JSON.parse(localStorage.getItem('smart_portal_master_data')) || { subjects: {} };
 
         const ADMIN_USER = 'admin';
@@ -611,9 +665,14 @@
             subjectsKeys.forEach(subId => {
                 const sub = portalData.subjects[subId];
                 const lecCount = Object.keys(sub.lectures || {}).length;
+                const hasAlert = sub.alert && sub.alert.trim() !== '';
+
                 grid.innerHTML += `
                     <div class="subject-card" onclick="openSubjectLectures('${subId}')">
-                        <div style="font-size: 1.3rem; font-weight: 800;">📖 ${sub.name}</div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div style="font-size: 1.3rem; font-weight: 800;">📖 ${sub.name}</div>
+                            ${hasAlert ? '<span class="badge-warning">🚨 يوجد تنبيه</span>' : ''}
+                        </div>
                         <div style="color: var(--text-secondary); font-size: 0.9rem;">👤 ${sub.description || 'بدون وصف'}</div>
                         <div style="margin-top: auto; display: flex; justify-content: space-between; align-items: center; pt: 10px;">
                             <span class="badge">${lecCount} محاضرات</span>
@@ -634,6 +693,22 @@
 
             document.getElementById('subCategoryBadge').textContent = `قسم المادة`;
             document.getElementById('subTitleName').textContent = sub.name;
+
+            // عرض التنبيه البارز للمادة إذا كان موجوداً
+            const alertContainer = document.getElementById('subjectAlertContainer');
+            if (sub.alert && sub.alert.trim() !== '') {
+                alertContainer.innerHTML = `
+                    <div class="subject-alert-box">
+                        <span style="font-size: 1.5rem;">🔔</span>
+                        <div>
+                            <strong style="display: block; font-size: 1.05rem; margin-bottom: 4px;">تنبيه هامة / امتحان قادم:</strong>
+                            <p style="font-size: 0.95rem; line-height: 1.5; white-space: pre-line;">${sub.alert}</p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                alertContainer.innerHTML = '';
+            }
 
             const grid = document.getElementById('subjectLecturesGrid');
             const lecKeys = Object.keys(sub.lectures || {});
@@ -703,7 +778,6 @@
             const grid = document.getElementById('lecLinksGrid');
             grid.innerHTML = '';
 
-            // زر النسخ السريع الجبار بجانب العنوان أو في الأعلى
             let quickShareBox = `
                 <div style="background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 16px; padding: 1.2rem; margin-bottom: 1.2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                     <div>
@@ -730,7 +804,6 @@
             });
         }
 
-        // خاصية زر النسخ السريع الأسطورية
         function copyLectureShareText(subId, code, title) {
             const subName = portalData.subjects[subId].name;
             const siteUrl = window.location.href.split('?')[0];
@@ -751,7 +824,7 @@
                     document.getElementById('loginView').classList.add('hidden');
                     document.getElementById('adminView').classList.remove('hidden');
                     document.getElementById('logoutBtn').classList.remove('hidden');
-                    document.getElementById('topBanner').innerHTML = '<span>🛠️ وضع الإدارة النشط — تحكم كامل بالمواد والمحاضرات</span>';
+                    document.getElementById('topBanner').innerHTML = '<span>🛠️ وضع الإدارة النشط — تحكم كامل بالمواد والمحاضرات والتنبيهات</span>';
                     loadAdminPanel();
                 });
             } else {
@@ -778,11 +851,40 @@
             const desc = document.getElementById('newSubDesc').value.trim();
             const subId = 'sub_' + Date.now();
 
-            portalData.subjects[subId] = { name, description: desc, lectures: {} };
+            portalData.subjects[subId] = { name, description: desc, alert: '', lectures: {} };
             localStorage.setItem('smart_portal_master_data', JSON.stringify(portalData));
 
             showStatus('تم إضافة المادة بنجاح! 📚', `أصبح بإمكانك نشر محاضرات لـ (${name})`);
             e.target.reset();
+            loadAdminPanel();
+        }
+
+        // تحديث أو نشر تنبيه خاص بالمادة
+        function updateSubjectAlert(e) {
+            e.preventDefault();
+            const subId = document.getElementById('alertSubSelect').value;
+            const alertMsg = document.getElementById('alertTextMsg').value.trim();
+
+            if (!portalData.subjects[subId]) return;
+
+            portalData.subjects[subId].alert = alertMsg;
+            localStorage.setItem('smart_portal_master_data', JSON.stringify(portalData));
+
+            showStatus('تم تحديث التنبيه بنجاح! 🔔', 'سيظهر التنبيه فوراً للطلاب عند دخولهم للمادة');
+            document.getElementById('alertTextMsg').value = '';
+            loadAdminPanel();
+        }
+
+        // مسح وإلغاء التنبيه تماماً
+        function clearSubjectAlert() {
+            const subId = document.getElementById('alertSubSelect').value;
+            if (!portalData.subjects[subId]) return;
+
+            portalData.subjects[subId].alert = '';
+            localStorage.setItem('smart_portal_master_data', JSON.stringify(portalData));
+
+            showStatus('تم إزالة التنبيه بنجاح! 🗑️', 'تم إخفاء الشاشة التنبيهية من صفحة المادة');
+            document.getElementById('alertTextMsg').value = '';
             loadAdminPanel();
         }
 
@@ -819,12 +921,16 @@
 
         function loadAdminPanel() {
             const select = document.getElementById('adminSubSelect');
+            const alertSelect = document.getElementById('alertSubSelect');
             const list = document.getElementById('adminSubjectsList');
             const subjectsKeys = Object.keys(portalData.subjects);
 
             select.innerHTML = '';
+            alertSelect.innerHTML = '';
+
             if (subjectsKeys.length === 0) {
                 select.innerHTML = '<option value="">أضف مادة أولاً بالأعلى</option>';
+                alertSelect.innerHTML = '<option value="">أضف مادة أولاً بالأعلى</option>';
                 list.innerHTML = '<p style="color: var(--text-secondary);">لا توجد مواد أو محاضرات مضافة حتى الآن.</p>';
                 return;
             }
@@ -832,6 +938,7 @@
             subjectsKeys.forEach(subId => {
                 const sub = portalData.subjects[subId];
                 select.innerHTML += `<option value="${subId}">${sub.name}</option>`;
+                alertSelect.innerHTML += `<option value="${subId}">${sub.name} ${sub.alert ? ' (يوجد تنبيه نشط 🔔)' : ''}</option>`;
             });
 
             list.innerHTML = '';
@@ -859,11 +966,12 @@
 
                 list.innerHTML += `
                     <div class="lecture-row">
-                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 8px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
                             <div>
                                 <span class="badge">مادة دراسية</span>
                                 <strong style="margin-right: 8px; font-size: 1.1rem;">📖 ${sub.name}</strong>
                                 <span style="color: var(--text-secondary); font-size: 0.85rem;">(${sub.description || ''})</span>
+                                ${sub.alert ? '<div style="color: var(--warning); font-size: 0.82rem; margin-top: 4px;">🔔 التنبيه الحالي: ' + sub.alert + '</div>' : ''}
                             </div>
                             <button class="btn-danger" onclick="deleteSubject('${subId}')">حذف المادة بالكامل 🗑️</button>
                         </div>
@@ -894,7 +1002,6 @@
             goHome();
         }
 
-        // تشغيل واجهة المواد عند فتح الموقع لأول مرة
         renderHomeSubjects();
     </script>
 </body>
